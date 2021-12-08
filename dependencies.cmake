@@ -21,7 +21,7 @@ function (add_dependency_package package_name)
         set (${package_name}_DIR ${package_DIR})
     endif ()
 
-    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/dependencies_packages.txt "${package_name}/${package_DIR};")
+    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/dependencies_packages.txt "${package_name}|${package_DIR};")
 
     find_package (${package_name} REQUIRED)
 endfunction()
