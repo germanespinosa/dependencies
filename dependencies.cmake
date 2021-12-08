@@ -1,5 +1,7 @@
 make_directory (${CMAKE_CURRENT_BINARY_DIR}/dependency_include)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/dependency_include)
+file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/dependencies_outputs.txt)
+
 
 function (dependency_include)
     foreach(include_folder ${ARGN})
