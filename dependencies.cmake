@@ -4,14 +4,14 @@ file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/dependencies_outputs.txt)
 file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/dependencies_packages.txt)
 
 
-endmacro (dependency_include)
+macro (dependency_include)
     foreach(include_folder ${ARGN})
         execute_process(COMMAND bash -c "cp ${include_folder}/* ${CMAKE_CURRENT_BINARY_DIR}/dependency_include/ -r"
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}  )
     endforeach()
 endmacro()
 
-endmacro (add_dependency_package package_name_and_dir)
+macro (add_dependency_package package_name_and_dir)
     message(STATUS "Adding package ${package_name_and_dir} to dependency tree")
     string(REPLACE "|" ";" package_name_and_dir ${package_name_and_dir})
     list(GET package_name_and_dir 0 package_name)
@@ -27,13 +27,13 @@ endmacro (add_dependency_package package_name_and_dir)
     find_package (${package_name} REQUIRED)
 endmacro()
 
-endmacro (add_dependency_output_directory dependency_output_directory)
+macro (add_dependency_output_directory dependency_output_directory)
     message(STATUS "Adding folder ${dependency_output_directory} to dependency tree")
     file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/dependencies_outputs.txt "${dependency_output_directory};")
     link_directories(${dependency_output_directory})
 endmacro()
 
-endmacro(install_dependency git_repo)
+macro(install_dependency git_repo)
 
     execute_process(COMMAND basename ${git_repo}
             OUTPUT_VARIABLE repo_name )
