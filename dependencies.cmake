@@ -8,6 +8,10 @@ function (dependency_include)
     endforeach()
 endfunction()
 
+function (add_dependency_output_directory dependency_output_directory)
+    execute_process(COMMAND echo ${dependency_output_directory} >> ${CMAKE_CURRENT_BINARY_DIR}/dependencies_outputs.txt)
+endfunction()
+
 function(install_dependency git_repo)
 
     execute_process(COMMAND basename ${git_repo}
@@ -63,5 +67,6 @@ function(install_dependency git_repo)
         set (${package_name}_DIR ${destination_folder})
         find_package (${package_name} REQUIRED)
     endif ()
+    add_dependency_output_directory(${destination_folder})
     link_directories(${destination_folder})
 endfunction()
