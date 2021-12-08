@@ -56,7 +56,7 @@ function(install_dependency git_repo)
         dependency_include(${destination_folder}/dependency_include)
     endif()
 
-    execute_process(COMMAND bash -c "[ -t dependencies_outputs.txt ]"
+    execute_process(COMMAND bash -c "[ -f dependencies_outputs.txt ]"
             WORKING_DIRECTORY ${destination_folder}
             RESULT_VARIABLE  dependencies_outputs_exists)
 
