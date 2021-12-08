@@ -80,6 +80,19 @@ function(install_dependency git_repo)
         endforeach()
     endif()
 
+    execute_process(COMMAND bash -c "[ -f dependencies_packages.txt ]"
+            WORKING_DIRECTORY ${destination_folder}
+            RESULT_VARIABLE  dependencies_packages_exists)
+
+    if (${dependencies_packages_exists} EQUAL 0)
+        message(STATUS "dependencies_packages found!")
+        file(READ ${destination_folder}/dependencies_packages.txt dependencies_packages)
+        foreach(dependencies_package ${dependencies_packages})
+            if (NOT ${dependencies_package} EQUAL "")
+                add_dependency_package(${dependencies_package})
+            endif()
+        endforeach()
+    endif()
 
     execute_process(COMMAND make -j
             WORKING_DIRECTORY ${destination_folder})
