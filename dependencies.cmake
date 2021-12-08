@@ -23,6 +23,7 @@ function (add_dependency_package package_name_and_dir)
         set(${package_name}_DIR ${package_DIR})
     endif()
     file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/dependencies_packages.txt ";")
+    message(STATUS "Loading package ${package_name} from ${${package_name}_DIR}")
     find_package (${package_name} REQUIRED)
 endfunction()
 
