@@ -1,6 +1,7 @@
 make_directory (${CMAKE_CURRENT_BINARY_DIR}/dependency_include)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/dependency_include)
 file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/dependencies_outputs.txt)
+file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/dependencies_packages.txt)
 
 
 function (dependency_include)
@@ -10,11 +11,15 @@ function (dependency_include)
     endforeach()
 endfunction()
 
-function (add_dependency_package package_name)
+function (add_dependency_package package_name, package_DIR)
+    message(STATUS "Adding package ${package_name} to dependency tree")
+    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/dependencies_packages.txt "${package_name};")
+    set (${package_name}_DIR ${package_DIR})
+    find_package (${package_name} REQUIRED)
 endfunction()
 
 function (add_dependency_output_directory dependency_output_directory)
-    message(STATUS "Adding ${dependency_output_directory} to dependency tree")
+    message(STATUS "Adding folder ${dependency_output_directory} to dependency tree")
     file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/dependencies_outputs.txt "${dependency_output_directory};")
     link_directories(${dependency_output_directory})
 endfunction()
@@ -85,8 +90,7 @@ function(install_dependency git_repo)
     list(LENGTH variadic_args variadic_count)
     if (${variadic_count} GREATER 0)
         list(GET variadic_args 0 package_name)
-        set (${package_name}_DIR ${destination_folder})
-        find_package (${package_name} REQUIRED)
+        add_dependency_package (${package_name}  ${destination_folder})
     endif ()
     
     
