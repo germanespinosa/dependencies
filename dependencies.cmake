@@ -13,11 +13,16 @@ endfunction()
 
 function (add_dependency_package package_name_and_dir)
     message(STATUS "Adding package ${package_name_and_dir} to dependency tree")
-
-    string(REPLACE "|" ";" dependencies_package_DIR ${package_name_and_dir})
-    message("dependencies_package_DIR 1: ${package_name_and_dir}")
-    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/dependencies_packages.txt "${package_name}|${package_DIR};")
-
+    string(REPLACE "|" ";" package_name_and_dir ${package_name_and_dir})
+    list(GET package_name_and_dir 0 package_name)
+    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/dependencies_packages.txt "${package_name}")
+    list(LENGTH package_name_and_dir has_dir)
+    if (${has_dir} GREATER 1)
+        list(GET package_name_and_dir 1 package_DIR)
+        file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/dependencies_packages.txt "|${package_DIR}")
+        set(${package_name}_DIR ${package_DIR})
+    endif()
+    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/dependencies_packages.txt ";")
     find_package (${package_name} REQUIRED)
 endfunction()
 
