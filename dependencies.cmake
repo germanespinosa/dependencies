@@ -111,7 +111,7 @@ function(install_dependency git_repo)
     list(LENGTH variadic_args variadic_count)
     if (${variadic_count} GREATER 0)
         list(GET variadic_args 0 package_name)
-        add_dependency_package (${package_name}  ${destination_folder})
+        add_dependency_package ("${package_name}|${destination_folder}")
     endif ()
     
     
