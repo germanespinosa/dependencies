@@ -11,10 +11,17 @@ function (dependency_include)
     endforeach()
 endfunction()
 
-function (add_dependency_package package_name, package_DIR)
+function (add_dependency_package package_name)
     message(STATUS "Adding package ${package_name} to dependency tree")
     file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/dependencies_packages.txt "${package_name};")
-    set (${package_name}_DIR ${package_DIR})
+
+    set (variadic_args ${ARGN})
+    list(LENGTH variadic_args variadic_count)
+    if (${variadic_count} GREATER 0)
+        list(GET variadic_args 0 package_DIR)
+        set (${package_name}_DIR ${package_DIR})
+    endif ()
+
     find_package (${package_name} REQUIRED)
 endfunction()
 
