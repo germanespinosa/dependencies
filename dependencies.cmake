@@ -71,7 +71,7 @@ function(install_dependency git_repo)
             RESULT_VARIABLE  include_folder_exists)
 
     if (${include_folder_exists} EQUAL 0)
-        dependency_include(${destination_folder}|dependency_include)
+        dependency_include(${destination_folder})
     endif()
 
     execute_process(COMMAND bash -c "[ -f dependencies_outputs.txt ]"
