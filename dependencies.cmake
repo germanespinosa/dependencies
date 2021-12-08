@@ -61,6 +61,7 @@ function(install_dependency git_repo)
             RESULT_VARIABLE  dependencies_outputs_exists)
 
     if (${dependencies_outputs_exists} EQUAL 0)
+        message(STATUS "dependency_outputs found!")
         file(READ ${destination_folder}/dependencies_outputs.txt dependencies_outputs)
         foreach(output_folder ${dependencies_outputs})
             message(status "output_folder ${output_folder}")
