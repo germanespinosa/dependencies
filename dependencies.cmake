@@ -11,6 +11,7 @@ endfunction()
 function (add_dependency_output_directory dependency_output_directory)
     message(STATUS "Adding ${dependency_output_directory} to dependency tree")
     file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/dependencies_outputs.txt "${dependency_output_directory} ")
+    link_directories(${dependency_output_directory})
 endfunction()
 
 function(install_dependency git_repo)
@@ -55,6 +56,17 @@ function(install_dependency git_repo)
         dependency_include(${destination_folder}/dependency_include)
     endif()
 
+    execute_process(COMMAND bash -c "[ -t dependencies_outputs.txt ]"
+            WORKING_DIRECTORY ${destination_folder}
+            RESULT_VARIABLE  dependencies_outputs_exists)
+
+    if (${dependencies_outputs_exists} EQUAL 0)
+        file(READ ${destination_folder}/dependencies_outputs.txt dependencies_outputs)
+        foreach(output_folder ${dependencies_outputs})
+            message(status "output_folder ${output_folder}")
+        endforeach()
+    endif()
+
 
     execute_process(COMMAND make -j
             WORKING_DIRECTORY ${destination_folder})
@@ -68,6 +80,8 @@ function(install_dependency git_repo)
         set (${package_name}_DIR ${destination_folder})
         find_package (${package_name} REQUIRED)
     endif ()
+    
+    
     add_dependency_output_directory(${destination_folder})
-    link_directories(${destination_folder})
+   
 endfunction()
