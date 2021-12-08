@@ -25,6 +25,7 @@ function (add_dependency_package package_name_and_dir)
     file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/dependencies_packages.txt ";")
     message(STATUS "Loading package ${package_name} from ${${package_name}_DIR}")
     find_package (${package_name} REQUIRED)
+    message(" CURL_LIBRARIES: ${CURL_LIBRARIES} ")
 endfunction()
 
 function (add_dependency_output_directory dependency_output_directory)
