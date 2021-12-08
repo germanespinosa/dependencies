@@ -9,7 +9,7 @@ function (dependency_include)
 endfunction()
 
 function (add_dependency_output_directory dependency_output_directory)
-    execute_process(COMMAND echo ${dependency_output_directory} >> ${CMAKE_CURRENT_BINARY_DIR}/dependencies_outputs.txt)
+    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/dependencies_outputs.txt "${dependency_output_directory}")
 endfunction()
 
 function(install_dependency git_repo)
