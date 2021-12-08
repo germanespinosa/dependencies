@@ -10,7 +10,7 @@ endfunction()
 
 function (add_dependency_output_directory dependency_output_directory)
     message(STATUS "Adding ${dependency_output_directory} to dependency tree")
-    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/dependencies_outputs.txt "${dependency_output_directory}")
+    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/dependencies_outputs.txt "${dependency_output_directory} ")
 endfunction()
 
 function(install_dependency git_repo)
