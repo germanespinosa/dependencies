@@ -10,6 +10,9 @@ function (dependency_include)
     endforeach()
 endfunction()
 
+function (add_dependency_package package_name)
+endfunction()
+
 function (add_dependency_output_directory dependency_output_directory)
     message(STATUS "Adding ${dependency_output_directory} to dependency tree")
     file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/dependencies_outputs.txt "${dependency_output_directory};")
