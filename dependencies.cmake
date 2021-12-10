@@ -42,8 +42,6 @@ endmacro()
 
 macro(install_dependency git_repo)
     
-    set(dependencies_folder "${CMAKE_CURRENT_SOURCE_DIR}/dependencies")
-    
     execute_process(COMMAND basename ${git_repo}
             OUTPUT_VARIABLE repo_name )
 
@@ -51,6 +49,8 @@ macro(install_dependency git_repo)
 
     message(STATUS "\nConfiguring dependency ${repo_name}")
 
+    set(dependencies_folder "${CMAKE_CURRENT_SOURCE_DIR}/dependencies")
+    
     execute_process(COMMAND mkdir ${dependencies_folder} -p)
 
     set(dependency_folder "${dependencies_folder}/${repo_name}")
