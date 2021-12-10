@@ -1,0 +1,50 @@
+#!/bin/bash
+
+FOLDER="cmake-build-release"
+BUILDTYPE="Release"
+
+if [[ "$*1" == *"-d"*  ]]
+then
+  FOLDER="cmake-build-debug"
+  BUILDTYPE="Debug"
+fi
+
+TESTS="NO_TESTS"
+if [[ "$*1" == *"-t"*  ]]
+then
+  TESTS=""
+fi
+
+
+if [ -f "CMakeLists.txt" ]
+then
+  if [ -d "$FOLDER" ]
+  then
+    if [[ "$*1" == *"-c"*  ]]
+    then
+      rm $FOLDER -r
+    fi
+  fi
+  if [ -d "dependencies" ]
+  then
+    if [[ "$*1" == *"-cd"*  ]]
+    then
+      rm dependencies -r -f
+    fi
+  fi
+  mkdir $FOLDER -p
+
+  cd $FOLDER
+  export CATCH_TESTS="$TESTS"
+  CXX=g++-10 CC=gcc-10 cmake .. -DCMAKE_BUILD_TYPE=$BUILDTYPE 
+
+  if [[ "$*1" == *"-i"*  ]]
+  then
+    make install
+  else
+    make -j
+  fi
+else
+  echo "No cmake project file found (CMakeLists.txt)"
+fi
+
