@@ -46,6 +46,7 @@ macro (add_dependency_output_directory dependency_output_directory)
 endmacro()
 
 macro(install_dependency git_repo)
+	message("dependencies_folder before ${dependencies_folder}")
 
     execute_process(COMMAND basename ${git_repo}
             OUTPUT_VARIABLE repo_name )
