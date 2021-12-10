@@ -3,7 +3,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/dependency_include)
 file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/dependencies_outputs.txt)
 file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/dependencies_packages.txt)
 
-message ("dependency folder parameter: "$ENV{DEPENDENCIES_FOLDER}")
+message ("dependency folder parameter: $ENV{DEPENDENCIES_FOLDER}")
 
 set(dependencies_folder "${CMAKE_CURRENT_SOURCE_DIR}/dependencies" CACHE PATH "")
 make_directory(${dependencies_folder})
