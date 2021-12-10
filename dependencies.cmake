@@ -3,6 +3,9 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/dependency_include)
 file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/dependencies_outputs.txt)
 file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/dependencies_packages.txt)
 
+set(dependencies_folder "${CMAKE_CURRENT_SOURCE_DIR}/dependencies" CACHE PATH "")
+make_directory(${dependencies_folder})
+
 macro (copy_include)
     foreach(include_folder ${ARGN})
         execute_process(COMMAND bash -c "cp ${include_folder}/* ${CMAKE_CURRENT_BINARY_DIR}/dependency_include/ -r"
@@ -50,8 +53,6 @@ macro(install_dependency git_repo)
     message(STATUS "\nConfiguring dependency ${repo_name}")
 
     set(dependencies_folder "${CMAKE_CURRENT_SOURCE_DIR}/dependencies")
-
-    execute_process(COMMAND mkdir ${dependencies_folder} -p)
 
     set(dependency_folder "${dependencies_folder}/${repo_name}")
 
