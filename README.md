@@ -1,3 +1,3 @@
 # dependencies
 
-bash <(curl -s http://github.com/germanespinosa/dependencies/setup)
+bash <(curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/setup)
