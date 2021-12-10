@@ -2,7 +2,6 @@ make_directory (${CMAKE_CURRENT_BINARY_DIR}/dependency_include)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/dependency_include)
 file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/dependencies_outputs.txt)
 file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/dependencies_packages.txt)
-set(dependencies_folder "${CMAKE_CURRENT_SOURCE_DIR}/dependencies")
 
 macro (copy_include)
     foreach(include_folder ${ARGN})
@@ -42,7 +41,9 @@ macro (add_dependency_output_directory dependency_output_directory)
 endmacro()
 
 macro(install_dependency git_repo)
-
+    
+    set(dependencies_folder "${CMAKE_CURRENT_SOURCE_DIR}/dependencies")
+    
     execute_process(COMMAND basename ${git_repo}
             OUTPUT_VARIABLE repo_name )
 
