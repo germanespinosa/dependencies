@@ -3,7 +3,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/dependency_include)
 file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/dependencies_outputs.txt)
 file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/dependencies_packages.txt)
 
-if ("$ENV{DEPENDENCIES_FOLDER}" EQUAL "")
+if (DEFINED $ENV{DEPENDENCIES_FOLDER})
 	set(dependencies_folder "${CMAKE_CURRENT_SOURCE_DIR}/dependencies" CACHE PATH "")
 else()
 	set(dependencies_folder "$ENV{DEPENDENCIES_FOLDER}" CACHE PATH "")
