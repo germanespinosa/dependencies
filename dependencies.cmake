@@ -66,7 +66,7 @@ macro(install_dependency git_repo)
     set(destination_folder ${CMAKE_CURRENT_BINARY_DIR}/${repo_name})
     execute_process(COMMAND mkdir ${repo_name} -p
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} )
-    execute_process(COMMAND bash -c "DEPENDENCIES_FOLDER=$dependencies_folder BUILD_AS_DEPENDENCY=TRUE CATCH_TESTS=NO_TESTS cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} '-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}' -G 'CodeBlocks - Unix Makefiles' ${dependency_folder}"
+    execute_process(COMMAND bash -c "DEPENDENCIES_FOLDER=${dependencies_folder} BUILD_AS_DEPENDENCY=TRUE CATCH_TESTS=NO_TESTS cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} '-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}' -G 'CodeBlocks - Unix Makefiles' ${dependency_folder}"
             WORKING_DIRECTORY ${destination_folder})
     execute_process(COMMAND bash -c "[ -d dependency_include ]"
             WORKING_DIRECTORY ${destination_folder}
