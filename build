@@ -36,7 +36,7 @@ then
 
   cd $FOLDER
   export CATCH_TESTS="$TESTS"
-  cmake .. -DCMAKE_BUILD_TYPE=$BUILDTYPE -DCMAKE_C_COMPILER=/bin/gcc-10 '-DCMAKE_CXX_COMPILER=/bin/g++-10'
+  cmake .. -DCMAKE_BUILD_TYPE=$BUILDTYPE '-DCMAKE_CXX_COMPILER=/bin/g++-10'
 
   if [[ "$*1" == *"-i"*  ]]
   then
