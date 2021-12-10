@@ -6,8 +6,9 @@ file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/dependencies_packages.txt)
 if ("$ENV{DEPENDENCIES_FOLDER}" EQUAL "")
 	set(dependencies_folder "${CMAKE_CURRENT_SOURCE_DIR}/dependencies" CACHE PATH "")
 else()
-	set(dependencies_folder "${DEPENDENCIES_FOLDER}" CACHE PATH "")
+	set(dependencies_folder "$ENV{DEPENDENCIES_FOLDER}" CACHE PATH "")
 endif()	
+
 execute_process(COMMAND mkdir ${dependencies_folder} -p)
 
 
