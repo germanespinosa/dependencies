@@ -13,6 +13,8 @@ endmacro()
 macro (dependency_include)
     if ("$ENV{BUILD_AS_DEPENDENCY}" MATCHES "TRUE")
         copy_include(${ARGN})
+    else()
+        include_directories(${ARGN})
     endif()
 endmacro()
 
