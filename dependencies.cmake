@@ -3,12 +3,17 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/dependency_include)
 file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/dependencies_outputs.txt)
 file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/dependencies_packages.txt)
 
-
-macro (dependency_include)
+macro (copy_include)
     foreach(include_folder ${ARGN})
         execute_process(COMMAND bash -c "cp ${include_folder}/* ${CMAKE_CURRENT_BINARY_DIR}/dependency_include/ -r"
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}  )
     endforeach()
+endmacro()
+
+macro (dependency_include)
+    if ("$ENV{BUILD_AS_DEPENDENCY}" MATCHES "TRUE")
+        copy_include(${ARGN})
+    endif()
 endmacro()
 
 macro (add_dependency_package package_name_and_dir)
@@ -64,7 +69,7 @@ macro(install_dependency git_repo)
     execute_process(COMMAND mkdir ${repo_name} -p
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} )
 
-    execute_process(COMMAND bash -c "CATCH_TESTS=NO_TESTS cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} '-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}' -G 'CodeBlocks - Unix Makefiles' ${dependency_folder}"
+    execute_process(COMMAND bash -c "BUILD_AS_DEPENDENCY=TRUE CATCH_TESTS=NO_TESTS cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} '-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}' -G 'CodeBlocks - Unix Makefiles' ${dependency_folder}"
             WORKING_DIRECTORY ${destination_folder})
 
     execute_process(COMMAND bash -c "[ -d dependency_include ]"
@@ -72,7 +77,7 @@ macro(install_dependency git_repo)
             RESULT_VARIABLE  include_folder_exists)
 
     if (${include_folder_exists} EQUAL 0)
-        dependency_include(${destination_folder}/dependency_include)
+        copy_include(${destination_folder}/dependency_include)
     endif()
 
     execute_process(COMMAND bash -c "[ -f dependencies_outputs.txt ]"
