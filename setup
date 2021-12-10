@@ -1,0 +1,4 @@
+#!/bin/bash
+
+curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/build > /usr/local/bin/build
+chmod +777 /usr/local/bin/build
