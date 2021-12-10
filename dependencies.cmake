@@ -2,7 +2,7 @@ make_directory (${CMAKE_CURRENT_BINARY_DIR}/dependency_include)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/dependency_include)
 file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/dependencies_outputs.txt)
 file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/dependencies_packages.txt)
-set(dependencies_folder "${CMAKE_CURRENT_SOURCE_DIR}/dependencies" CACHE PATH)
+set(dependencies_folder "${CMAKE_CURRENT_SOURCE_DIR}/dependencies")
 
 macro (copy_include)
     foreach(include_folder ${ARGN})
