@@ -4,10 +4,10 @@ file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/dependencies_outputs.txt)
 file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/dependencies_packages.txt)
 
 if (DEFINED $ENV{DEPENDENCIES_FOLDER})
-	set(dependencies_folder "${CMAKE_CURRENT_SOURCE_DIR}/dependencies" CACHE PATH "")
-else()
 	set(dependencies_folder "$ENV{DEPENDENCIES_FOLDER}" CACHE PATH "")
 	message ("dependency folder parameter: $ENV{DEPENDENCIES_FOLDER}")
+else()
+	set(dependencies_folder "${CMAKE_CURRENT_SOURCE_DIR}/dependencies" CACHE PATH "")
 endif()
 
 make_directory(${dependencies_folder})
