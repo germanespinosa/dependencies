@@ -1,23 +1,24 @@
 #!/bin/bash
 
-FOLDER="cmake-build-release"
-BUILDTYPE="Release"
-
-if [[ "$*1" == *"-d"*  ]]
-then
-  FOLDER="cmake-build-debug"
-  BUILDTYPE="Debug"
-fi
-
-TESTS="NO_TESTS"
-if [[ "$*1" == *"-t"*  ]]
-then
-  TESTS=""
-fi
-
-
+#check if it is a C++ build or a python build
 if [ -f "CMakeLists.txt" ]
 then
+  # C++ build
+  FOLDER="cmake-build-release"
+  BUILDTYPE="Release"
+
+  if [[ "$*1" == *"-d"*  ]]
+  then
+    FOLDER="cmake-build-debug"
+    BUILDTYPE="Debug"
+  fi
+
+  TESTS="NO_TESTS"
+  if [[ "$*1" == *"-t"*  ]]
+  then
+    TESTS=""
+  fi
+
   if [ -d "$FOLDER" ]
   then
     if [[ "$*1" == *"-c"*  ]]
@@ -45,6 +46,6 @@ then
     make -j
   fi
 else
+  # python build
   echo "No cmake project file found (CMakeLists.txt)"
 fi
-
