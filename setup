@@ -12,4 +12,5 @@ chmod +777 /usr/local/bin/install.py
 mkdir /usr/local/share/cmake/extra-modules -p
 curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/dependencies.cmake > /usr/local/share/cmake/extra-modules/dependencies.cmake
 
-export CMAKE_MODULE_PATH=/usr/local/share/cmake/extra-modules
+echo "Adding to cmake module path"
+echo "export CMAKE_MODULE_PATH=/usr/local/share/cmake/extra-modules" >> /etc/profile
