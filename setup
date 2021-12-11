@@ -12,7 +12,7 @@ chmod +777 /usr/local/bin/install.py
 
 temp=$(mktemp -d)
 curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/DependenciesConfig.cmake > $temp/DependenciesConfig.cmake
-curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/CakeLists.txt > $temp/CakeLists.txt
+curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/CMakeLists.txt > $temp/CMakeLists.txt
 
 cd $temp
 cmake .
