@@ -1,4 +1,4 @@
-#/bin/python
+#!/bin/python
 
 import sys
 import subprocess
@@ -23,7 +23,10 @@ def extract_module(file_name, destination):
         zip_ref.extractall(destination)
 
 
-module_file = download_module(sys.argv[1])
+module_file = sys.argv[1]
+print ("Installing module_file...", end="")
+if module_file.startswith("https://"):
+    module_file = download_module(sys.argv[1])
+
 destination = subprocess.Popen(["python", "-m", "site", "--user-site"], stdout=subprocess.PIPE).communicate()[0].decode().replace("\n", "").replace("\r", "")
 extract_module(module_file, destination)
-
