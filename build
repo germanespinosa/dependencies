@@ -1,5 +1,23 @@
 #!/bin/bash
-
+if [[ "$*1" == *"-d"*  ]]
+then
+  echo "Build 2.0 Automatic project build v1.0.2020"
+  echo "by German Espinosa (germanespinosa@gmail.com)"
+  echo ""
+  echo "Build utility for c++ projects and python libraries."
+  echo "For c++ it creates output folder (cmake-build-release or cmake-build-debug), runs cmake configuration and launch make build."
+  echo "For python libraries, it versions the library, compress the files into a zip that can be installed with the installation utility"
+  echo ""
+  echo "Usage:"
+  echo "   build [-c] [-cd] [-d] [-t] [-v version]"
+  echo ""
+  echo "Parameters:"
+  echo "  -c  : Clears previous build. Regenerates build folder (C++ only)"
+  echo "  -cd : Clears previous build and dependencies (C++ only)"
+  echo "  -d  : Builds in debug  (C++ only)"
+  echo "  -t  : Run tests (C++ only)"
+  echo "  -i  : Runs make install after build"
+fi
 #check if it is a C++ build or a python build
 if [ -f "CMakeLists.txt" ]
 then
