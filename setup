@@ -21,4 +21,4 @@ make install ~> /dev/null
 echo "Installiing python module"
 curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/dependencies/__init__.py?$RANDOM > $temp/__init__.py
 curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/dependencies/__version__.py?$RANDOM > $temp/__version__.py
-python $temp/__init__.py
+python __init__.py
