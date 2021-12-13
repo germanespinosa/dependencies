@@ -56,8 +56,7 @@ else:
 
 version = get_version_string(major, minor, build)
 
-print("Creating " + module_name + " version " + version)
 save_version_script(module_name, major, minor, build)
 module_file = 'build/' + module_name + version + '.zip'
 build_module(module_name, module_file)
-print("done!")
+print(module_file)
