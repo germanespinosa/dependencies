@@ -47,5 +47,18 @@ then
   fi
 else
   # python build
-  echo "No cmake project file found (CMakeLists.txt)"
+  for dir in */     # list directories in the form "/tmp/dirname/"
+  do
+    dir=${dir%*/}      #_ remove the trailing "/"
+    if [ -f "$dir/__init__.py" ]
+    then
+      build.py "$dir" 
+    fi
+  done
 fi
+
+if [ "$build" == "NO_BLUID" ]
+then
+  echo "No cmake project file (CMakeLists.txt) and no python library found"
+fi
+
