@@ -16,6 +16,7 @@ curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/Depen
 curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/CMakeLists.txt > $temp/CMakeLists.txt
 
 cd $temp
-cmake . 2> /dev/null
-make install 2> /dev/null
+cmake . ~> /dev/null
+make install ~> /dev/null
+
 
