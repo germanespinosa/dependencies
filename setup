@@ -9,7 +9,6 @@ chmod +777 /usr/local/bin/build.py
 curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/install.py?$RANDOM > /usr/local/bin/install.py
 chmod +777 /usr/local/bin/install.py
 
-
 temp=$(mktemp -d)
 echo "Installing cmake module"
 curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/DependenciesConfig.cmake > $temp/DependenciesConfig.cmake
@@ -19,4 +18,6 @@ cd $temp
 cmake . ~> /dev/null
 make install ~> /dev/null
 
-
+echo "Installiing python module"
+curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/dependencies/__version__.py?$RANDOM > $temp/dependencies.py
+python $temp/dependencies.py

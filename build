@@ -92,11 +92,11 @@ else
       build="PYTHON"
       echo "Python build initiated"
       echo "Building $dir $version"
-      lib_file=$(build.py "$dir" $version)
+      lib_file=$(python-module-build.py "$dir" $version)
       if [[ "$*1" == *"-i"*  ]]
       then
         echo "Installing $dir to user python environment"
-        install.py "$lib_file"
+        python-module-install.py "$lib_file"
       fi
       if [[ "$*1" == *"-u"*  ]]
       then
