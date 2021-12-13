@@ -1,12 +1,12 @@
 #!/bin/bash
 
-curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/build > /usr/local/bin/build
+curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/build?$RANDOM > /usr/local/bin/build
 chmod +777 /usr/local/bin/build
 
-curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/build.py > /usr/local/bin/build.py
+curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/build.py?$RANDOM > /usr/local/bin/build.py
 chmod +777 /usr/local/bin/build.py
 
-curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/install.py > /usr/local/bin/install.py
+curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/install.py?$RANDOM > /usr/local/bin/install.py
 chmod +777 /usr/local/bin/install.py
 
 
