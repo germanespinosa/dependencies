@@ -81,9 +81,11 @@ else
     dir=${dir%*/}      #_ remove the trailing "/"
     if [ -f "$dir/__init__.py" ]
     then
+      echo "Building library $dir $version"
       lib_file=$(build.py "$dir" $version)
       if [[ "$*1" == *"-i"*  ]]
       then
+        echo "Installing library"
         install.py "$lib_file"
       fi
     fi
