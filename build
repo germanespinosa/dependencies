@@ -1,7 +1,7 @@
 #!/bin/bash
-if [[ "$*1" == *"-d"*  ]]
+if [[ "$*1" == *"-h"*  ]]
 then
-  echo "Build 2.0 Automatic project build v1.0.2020"
+  echo "Build 2.0 v1.0.2020"
   echo "by German Espinosa (germanespinosa@gmail.com)"
   echo ""
   echo "Build utility for c++ projects and python libraries."
@@ -17,6 +17,9 @@ then
   echo "  -d  : Builds in debug  (C++ only)"
   echo "  -t  : Run tests (C++ only)"
   echo "  -i  : Runs make install after build"
+  echo "  -v  : Library version in format \"major.minor.build\" (int.int.int) (python only)"
+  echo ""
+  exit 0
 fi
 #check if it is a C++ build or a python build
 if [ -f "CMakeLists.txt" ]
@@ -65,12 +68,20 @@ then
   fi
 else
   # python build
+  version=""
+  for (( i=1; i<=$#; i++)); do
+    j=$((i+1))
+    if [[ "${!i}" == "-v" ]]
+    then
+      version="${!j}"
+    fi
+  done
   for dir in */     # list directories in the form "/tmp/dirname/"
   do
     dir=${dir%*/}      #_ remove the trailing "/"
     if [ -f "$dir/__init__.py" ]
     then
-      build.py "$dir" 
+      build.py "$dir" "$version"
     fi
   done
 fi
@@ -79,4 +90,3 @@ if [ "$build" == "NO_BLUID" ]
 then
   echo "No cmake project file (CMakeLists.txt) and no python library found"
 fi
-
