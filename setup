@@ -19,5 +19,6 @@ cmake . ~> /dev/null
 make install ~> /dev/null
 
 echo "Installiing python module"
-curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/dependencies/__version__.py?$RANDOM > $temp/dependencies.py
+curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/dependencies/__init__.py?$RANDOM > $temp/dependencies.py
+curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/dependencies/__version__.py?$RANDOM > $temp/__version__.py
 python $temp/dependencies.py
