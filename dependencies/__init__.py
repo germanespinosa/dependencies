@@ -116,6 +116,6 @@ def build_module(module_name, version_string=None):
 
 
 if __name__ == "__main__":
-    from __version__ import __module_version__ # DO NOT MODIFY DEPENDENCIES MODULE VERSION
+    from __version__ import __module_version__
     major, minor, build = __module_version__()
     install_dependency("https://github.com/germanespinosa/dependencies/raw/main/python-build/dependencies." + get_version_string(major, minor, build) + ".zip")
