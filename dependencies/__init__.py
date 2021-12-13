@@ -1,6 +1,3 @@
-from .__version__ import __module_version__ # DO NOT MODIFY DEPENDENCIES MODULE VERSION
-
-
 def install_dependency(module_file):
     filename = module_file.split("/")[-1].replace(".zip", "")
     current_module_version = (0, 0, 0)
@@ -82,7 +79,7 @@ def save_version_script(module_name, major, minor, build):
     with open(module_name + "/__init__.py", "r") as m:
         lines = m.readlines()
     for line in lines:
-        if line.startswith("from .__version__ import __module_version__ # DO NOT MODIFY DEPENDENCIES MODULE VERSION"):
+        if "import __module_version__" in line:
             found = True
     if not found:
         with open(module_name + "/__init__.py", "w") as m:
@@ -119,5 +116,6 @@ def build_module(module_name, version_string=None):
 
 
 if __name__ == "__main__":
+    from __version__ import __module_version__ # DO NOT MODIFY DEPENDENCIES MODULE VERSION
     major, minor, build = __module_version__()
     install_dependency("https://github.com/germanespinosa/dependencies/raw/main/python-build/dependencies." + get_version_string(major, minor, build) + ".zip")
