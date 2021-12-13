@@ -1,9 +1,11 @@
 #!/bin/bash
+
+echo "Quick build utility 2.0 v1.0.2020"
+echo "by German Espinosa (germanespinosa@gmail.com)"
+echo ""
+
 if [[ "$*1" == *"-h"*  ]]
 then
-  echo "Build 2.0 v1.0.2020"
-  echo "by German Espinosa (germanespinosa@gmail.com)"
-  echo ""
   echo "Build utility for c++ projects and python libraries."
   echo "For c++ it creates output folder (cmake-build-release or cmake-build-debug), runs cmake configuration and launch make build."
   echo "For python libraries, it versions the library, compress the files into a zip that can be installed with the installation utility"
@@ -18,12 +20,17 @@ then
   echo "  -t  : Run tests (C++ only)"
   echo "  -i  : Runs make install after build"
   echo "  -v  : Library version in format \"major.minor.build\" (int.int.int) (python only)"
+  echo "  -u  : Uploads the new library to the current git repository"
   echo ""
   exit 0
 fi
+
+build=""
 #check if it is a C++ build or a python build
 if [ -f "CMakeLists.txt" ]
 then
+  build="C++"
+  echo "C++ build initiated"
   # C++ build
   FOLDER="cmake-build-release"
   BUILDTYPE="Release"
@@ -40,7 +47,7 @@ then
     TESTS=""
   fi
 
-  if [ -d "$FOLDER" ]
+  if [ -d "$FOLER" ]
   then
     if [[ "$*1" == *"-c"*  ]]
     then
@@ -81,6 +88,8 @@ else
     dir=${dir%*/}      #_ remove the trailing "/"
     if [ -f "$dir/__init__.py" ]
     then
+      build="PYTHON"
+      echo "Python build initiated"
       echo "Building $dir $version"
       lib_file=$(build.py "$dir" $version)
       if [[ "$*1" == *"-i"*  ]]
@@ -88,11 +97,21 @@ else
         echo "Installing $dir to user python environment"
         install.py "$lib_file"
       fi
+      if [[ "$*1" == *"-u"*  ]]
+      then
+         echo "Pushing file to git repository"
+         git add $lib_file 2> /dev/null
+         git commit $lib_file -m -q "new $dir version: $libfile" 2> /dev/null
+         git push $libfile 2> /dev/null
+      fi
     fi
   done
 fi
 
-if [ "$build" == "NO_BLUID" ]
+if [[ "$build" == "" ]]
 then
   echo "No cmake project file (CMakeLists.txt) and no python library found"
+  exit 1
 fi
+
+echo "all done!"
