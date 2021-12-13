@@ -24,7 +24,6 @@ def extract_module(file_name, destination):
 
 
 module_file = sys.argv[1]
-print ("Installing module_file...", end="")
 if module_file.startswith("https://"):
     module_file = download_module(sys.argv[1])
 
