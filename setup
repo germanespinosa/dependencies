@@ -11,9 +11,11 @@ chmod +777 /usr/local/bin/install.py
 
 
 temp=$(mktemp -d)
+echo "Installing cmake module"
 curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/DependenciesConfig.cmake > $temp/DependenciesConfig.cmake
 curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/CMakeLists.txt > $temp/CMakeLists.txt
 
 cd $temp
-cmake .
-make install
+cmake . 2> /dev/null
+make install 2> /dev/null
+

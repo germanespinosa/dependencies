@@ -19,6 +19,7 @@ then
   echo "  -d  : Builds in debug  (C++ only)"
   echo "  -t  : Run tests (C++ only)"
   echo "  -i  : Runs make install after build"
+  echo "  -p  : Force python build when both types of project are present"
   echo "  -v  : Library version in format \"major.minor.build\" (int.int.int) (python only)"
   echo "  -u  : Uploads the new library to the current git repository"
   echo ""
@@ -27,7 +28,7 @@ fi
 
 build=""
 #check if it is a C++ build or a python build
-if [ -f "CMakeLists.txt" ]
+if [ -f "CMakeLists.txt" ] && ! [[ "$*1" == *"-p"*  ]]
 then
   build="C++"
   echo "C++ build initiated"
