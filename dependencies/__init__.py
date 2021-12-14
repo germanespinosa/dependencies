@@ -55,8 +55,8 @@ def get_current_version(module_name):
     import sys
     if os.path.exists(module_name + "/__version__.py"):
         sys.path.insert(1, module_name)
-        from __version__ import module_version
-        return module_version()
+        from __version__ import __module_version__
+        return __module_version__()
     else:
         return 0, 0, 0
 
