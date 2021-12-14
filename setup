@@ -3,10 +3,10 @@
 curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/build?-H "Cache-Control: no-cache, no-store, must-revalidate" -H "Pragma: no-cache" -H "Expires: 0"> /usr/local/bin/build
 chmod +777 /usr/local/bin/build
 
-curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/build.py -H "Cache-Control: no-cache, no-store, must-revalidate" -H "Pragma: no-cache" -H "Expires: 0"> /usr/local/bin/build.py
+curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/python-module-build.py -H "Cache-Control: no-cache, no-store, must-revalidate" -H "Pragma: no-cache" -H "Expires: 0"> /usr/local/bin/build.py
 chmod +777 /usr/local/bin/build.py
 
-curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/install.py -H "Cache-Control: no-cache, no-store, must-revalidate" -H "Pragma: no-cache" -H "Expires: 0"> /usr/local/bin/install.py
+curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/python-module-install.py -H "Cache-Control: no-cache, no-store, must-revalidate" -H "Pragma: no-cache" -H "Expires: 0"> /usr/local/bin/install.py
 chmod +777 /usr/local/bin/install.py
 
 temp=$(mktemp -d)
