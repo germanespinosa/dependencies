@@ -52,6 +52,7 @@ def get_version_from_string(version_string):
 
 def get_current_version(module_name):
     import os
+    import sys
     if os.path.exists(module_name + "/__version__.py"):
         sys.path.insert(1, module_name)
         from __version__ import module_version
