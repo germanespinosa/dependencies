@@ -9,7 +9,9 @@ def install_dependency(module_file):
         module_name = filename.split(".")[0]
         module_version = getattr(__import__(module_name, fromlist=["__module_version__"]), "__module_version__")
         current_module_version = module_version()
-    except:
+    except ModuleNotFoundError:
+        pass
+    except AttributeError:
         pass
     if required_version != current_module_version:
         if module_file.startswith("https://") or module_file.startswith("http://"):
