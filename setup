@@ -1,13 +1,13 @@
 #!/bin/bash
 
-curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/build?-H "Cache-Control: no-cache, no-store, must-revalidate" -H "Pragma: no-cache" -H "Expires: 0"> /usr/local/bin/build
-chmod +777 /usr/local/bin/build
+sudo curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/build?-H "Cache-Control: no-cache, no-store, must-revalidate" -H "Pragma: no-cache" -H "Expires: 0"> /usr/local/bin/build
+sudo chmod +777 /usr/local/bin/build
 
-curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/python-module-build.py -H "Cache-Control: no-cache, no-store, must-revalidate" -H "Pragma: no-cache" -H "Expires: 0"> /usr/local/bin/python-module-build.py
-chmod +777 /usr/local/bin/python-module-build.py
+sudo curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/python-module-build.py -H "Cache-Control: no-cache, no-store, must-revalidate" -H "Pragma: no-cache" -H "Expires: 0"> /usr/local/bin/python-module-build.py
+sudo chmod +777 /usr/local/bin/python-module-build.py
 
-curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/python-module-install.py -H "Cache-Control: no-cache, no-store, must-revalidate" -H "Pragma: no-cache" -H "Expires: 0"> /usr/local/bin/python-module-install.py
-chmod +777 /usr/local/bin/python-module-install.py
+sudo curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/python-module-install.py -H "Cache-Control: no-cache, no-store, must-revalidate" -H "Pragma: no-cache" -H "Expires: 0"> /usr/local/bin/python-module-install.py
+sudo chmod +777 /usr/local/bin/python-module-install.py
 
 temp=$(mktemp -d)
 echo "Installing cmake module"
@@ -16,7 +16,7 @@ curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/CMake
 
 cd $temp
 cmake . ~> /dev/null
-make install ~> /dev/null
+sudo make install ~> /dev/null
 
 echo "Installiing python module"
 mkdir dependencies
