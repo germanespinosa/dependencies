@@ -10,7 +10,8 @@ sudo cp $temp/build /usr/local/bin/build
 
 curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/python-module-build.py -H "Cache-Control: no-cache, no-store, must-revalidate" -H "Pragma: no-cache" -H "Expires: 0"> $temp/python-module-build.py
 chmod +777 $temp/python-module-build.py
-sudo cp $temp/python-module-build.py /usr/local/bin/python-module-build.py
+sudo cp $temp/python-module-build.py
+/usr/local/bin/python-module-build.py
 
 curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/python-module-install.py -H "Cache-Control: no-cache, no-store, must-revalidate" -H "Pragma: no-cache" -H "Expires: 0"> $temp/python-module-install.py
 chmod +777 $temp/python-module-install.py
