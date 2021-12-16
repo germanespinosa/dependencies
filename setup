@@ -37,7 +37,11 @@ curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/CMake
 
 cd $temp
 cmake . ~> /dev/null
-sudo make install ~> /dev/null
+make install ~> /dev/null
+if [[ $? != 0 ]]
+then
+  sudo make install ~> /dev/null
+fi
 
 echo "Installing python module"
 mkdir dependencies
