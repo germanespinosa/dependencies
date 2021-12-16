@@ -6,15 +6,30 @@ echo "Installing scripts"
 
 curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/build?-H "Cache-Control: no-cache, no-store, must-revalidate" -H "Pragma: no-cache" -H "Expires: 0"> $temp/build
 chmod +777 $temp/build
-sudo cp $temp/build /usr/local/bin/build
+
+cp $temp/build /usr/local/bin/build 2> /dev/null
+if [[ $? != 0 ]]
+then
+  sudo cp $temp/build /usr/local/bin/build 2> /dev/null
+fi
 
 curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/python-module-build.py -H "Cache-Control: no-cache, no-store, must-revalidate" -H "Pragma: no-cache" -H "Expires: 0"> $temp/python-module-build.py
 chmod +777 $temp/python-module-build.py
-sudo cp $temp/python-module-build.py /usr/local/bin/python-module-build.py
+
+cp $temp/python-module-build.py /usr/local/bin/python-module-build.py 2> /dev/null
+if [[ $? != 0 ]]
+then
+  sudo cp $temp/python-module-build.py /usr/local/bin/python-module-build.py
+fi
 
 curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/python-module-install.py -H "Cache-Control: no-cache, no-store, must-revalidate" -H "Pragma: no-cache" -H "Expires: 0"> $temp/python-module-install.py
 chmod +777 $temp/python-module-install.py
-sudo cp $temp/python-module-install.py /usr/local/bin/python-module-install.py
+
+cp $temp/python-module-install.py /usr/local/bin/python-module-install.py 2> /dev/null
+if [[ $? != 0 ]]
+then
+  sudo cp $temp/python-module-install.py /usr/local/bin/python-module-install.py
+fi
 
 echo "Installing cmake module"
 curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/DependenciesConfig.cmake -H "Cache-Control: no-cache, no-store, must-revalidate" -H "Pragma: no-cache" -H "Expires: 0"> $temp/DependenciesConfig.cmake
