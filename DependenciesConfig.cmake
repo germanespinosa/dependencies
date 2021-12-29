@@ -99,7 +99,6 @@ macro(install_dependency git_repo)
     endif()
 
     if (EXISTS "${destination_folder}/dependencies_outputs.txt")
-        message(STATUS "dependency_outputs found!")
         file(READ ${destination_folder}/dependencies_outputs.txt dependencies_outputs)
         foreach(output_folder ${dependencies_outputs})
             if (NOT ${output_folder} EQUAL "")
