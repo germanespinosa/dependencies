@@ -1,13 +1,11 @@
 make_directory (${CMAKE_CURRENT_BINARY_DIR}/dependency_include)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/dependency_include)
-file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/dependencies_outputs.txt)
-file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/dependencies_packages.txt)
 
 if (NOT $ENV{DEPENDENCIES_FOLDER} EQUAL "")
-	set(dependencies_folder "$ENV{DEPENDENCIES_FOLDER}" CACHE PATH "")
-	message ("dependency folder parameter: $ENV{DEPENDENCIES_FOLDER}")
+    set(dependencies_folder "$ENV{DEPENDENCIES_FOLDER}" CACHE PATH "")
+    message ("dependency folder parameter: $ENV{DEPENDENCIES_FOLDER}")
 else()
-	set(dependencies_folder "${CMAKE_CURRENT_SOURCE_DIR}/dependencies" CACHE PATH "")
+    set(dependencies_folder "${CMAKE_CURRENT_SOURCE_DIR}/dependencies" CACHE PATH "")
 endif()
 
 make_directory(${dependencies_folder})
@@ -27,25 +25,37 @@ macro (dependency_include)
     endif()
 endmacro()
 
+function (append_new file_path new_string)
+    if (NOT EXISTS "${file_path}")
+        file(APPEND "${file_path}" "${new_string}")
+    else()
+        file(READ "${file_path}" content)
+        string(FIND "${content}" "${new_string}" is_found)
+        if (${is_found} EQUAL -1)
+            file(APPEND "${file_path}" "${new_string}")
+        endif()
+    endif()
+endfunction()
+
 macro (add_dependency_package package_name_and_dir)
     message(STATUS "Adding package ${package_name_and_dir} to dependency tree")
     string(REPLACE "|" ";" package_name_and_dir ${package_name_and_dir})
     list(GET package_name_and_dir 0 package_name)
-    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/dependencies_packages.txt "${package_name}")
     list(LENGTH package_name_and_dir has_dir)
     if (${has_dir} GREATER 1)
         list(GET package_name_and_dir 1 package_DIR)
-        file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/dependencies_packages.txt "|${package_DIR}")
+        set(package_dependency_string "${package_name}|${package_DIR};")
         set(${package_name}_DIR ${package_DIR})
+    else()
+        set(package_dependency_string "${package_name};")
     endif()
-    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/dependencies_packages.txt ";")
-    message(STATUS "Loading package ${package_name} from ${${package_name}_DIR}")
+    append_new(${CMAKE_CURRENT_BINARY_DIR}/dependencies_packages.txt "${package_dependency_string}")
     find_package (${package_name} REQUIRED)
 endmacro()
 
 macro (add_dependency_output_directory dependency_output_directory)
     message(STATUS "Adding folder ${dependency_output_directory} to dependency tree")
-    file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/dependencies_outputs.txt "${dependency_output_directory};")
+    append_new("${CMAKE_CURRENT_BINARY_DIR}/dependencies_outputs.txt" "${dependency_output_directory};")
     link_directories(${dependency_output_directory})
 endmacro()
 
@@ -60,38 +70,35 @@ macro(install_dependency git_repo)
 
     set(dependency_folder "${dependencies_folder}/${repo_name}")
 
-    execute_process(COMMAND bash -c "[ -d ${repo_name} ]"
-            WORKING_DIRECTORY ${dependencies_folder}
-            RESULT_VARIABLE  folder_exists)
-
-    if (${folder_exists} EQUAL 0)
+    if (EXISTS "${dependency_folder}")
         execute_process(COMMAND git pull
-                WORKING_DIRECTORY ${dependency_folder})
+                WORKING_DIRECTORY ${dependency_folder}
+                OUTPUT_VARIABLE git_pull_output)
     else()
         execute_process(COMMAND git -C ${dependencies_folder} clone ${git_repo})
     endif()
 
-    set(destination_folder ${CMAKE_CURRENT_BINARY_DIR}/${repo_name})
+    set(build_or_cache BUILD)
 
-    execute_process(COMMAND mkdir ${repo_name} -p
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} )
+    set(destination_folder ${dependency_folder}/dependency-build)
+    if ( "${git_pull_output}" MATCHES "Already up to date.")
+        if (EXISTS "${destination_folder}")
+            set(build_or_cache "USE_CACHE")
+        endif()
+    endif()
 
-    execute_process(COMMAND bash -c "DEPENDENCIES_FOLDER='${dependencies_folder}' BUILD_AS_DEPENDENCY=TRUE CATCH_TESTS=NO_TESTS cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} '-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}' -G 'CodeBlocks - Unix Makefiles' ${dependency_folder}"
+    if ("${build_or_cache}" MATCHES "BUILD")
+        make_directory("${destination_folder}")
+
+        execute_process(COMMAND bash -c "DEPENDENCIES_FOLDER='${dependencies_folder}' BUILD_AS_DEPENDENCY=TRUE CATCH_TESTS=NO_TESTS cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} '-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}' -G 'CodeBlocks - Unix Makefiles' ${dependency_folder}"
             WORKING_DIRECTORY ${destination_folder})
+    endif()
 
-    execute_process(COMMAND bash -c "[ -d dependency_include ]"
-            WORKING_DIRECTORY ${destination_folder}
-            RESULT_VARIABLE  include_folder_exists)
-
-    if (${include_folder_exists} EQUAL 0)
+    if (EXISTS "${destination_folder}/dependency_include")
         copy_include(${destination_folder}/dependency_include)
     endif()
 
-    execute_process(COMMAND bash -c "[ -f dependencies_outputs.txt ]"
-            WORKING_DIRECTORY ${destination_folder}
-            RESULT_VARIABLE  dependencies_outputs_exists)
-
-    if (${dependencies_outputs_exists} EQUAL 0)
+    if (EXISTS "${destination_folder}/dependencies_outputs.txt")
         message(STATUS "dependency_outputs found!")
         file(READ ${destination_folder}/dependencies_outputs.txt dependencies_outputs)
         foreach(output_folder ${dependencies_outputs})
@@ -101,11 +108,7 @@ macro(install_dependency git_repo)
         endforeach()
     endif()
 
-    execute_process(COMMAND bash -c "[ -f dependencies_packages.txt ]"
-            WORKING_DIRECTORY ${destination_folder}
-            RESULT_VARIABLE  dependencies_packages_exists)
-
-    if (${dependencies_packages_exists} EQUAL 0)
+    if (EXISTS "${destination_folder}/dependencies_packages.txt")
         message(STATUS "dependencies_packages found!")
         file(READ ${destination_folder}/dependencies_packages.txt dependencies_packages)
         foreach(dependencies_package_DIR ${dependencies_packages})
@@ -115,9 +118,10 @@ macro(install_dependency git_repo)
         endforeach()
     endif()
 
-    execute_process(COMMAND make -j
-            WORKING_DIRECTORY ${destination_folder})
-
+    if ("${build_or_cache}" MATCHES "BUILD")
+        execute_process(COMMAND make -j
+                WORKING_DIRECTORY ${destination_folder})
+    endif()
     set (repo_targets "${destination_folder}/${repo_name}Targets.cmake")
 
     set (variadic_args ${ARGN})
@@ -126,8 +130,7 @@ macro(install_dependency git_repo)
         list(GET variadic_args 0 package_name)
         add_dependency_package ("${package_name}|${destination_folder}")
     endif ()
-    
-    
+
     add_dependency_output_directory(${destination_folder})
-   
+
 endmacro()

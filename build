@@ -59,7 +59,7 @@ then
   then
     if [[ "$*1" == *"-cd"*  ]]
     then
-      rm dependencies -r -f
+      rm module -r -f
     fi
   fi
   mkdir $FOLDER -p

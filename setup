@@ -42,10 +42,3 @@ if [[ $? != 0 ]]
 then
   sudo make install ~> /dev/null
 fi
-
-echo "Installing python module"
-mkdir dependencies
-curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/dependencies/__init__.py -H "Cache-Control: no-cache, no-store, must-revalidate" -H "Pragma: no-cache" -H "Expires: 0"> $temp/dependencies/__init__.py
-curl -s https://raw.githubusercontent.com/germanespinosa/dependencies/main/dependencies/__version__.py -H "Cache-Control: no-cache, no-store, must-revalidate" -H "Pragma: no-cache" -H "Expires: 0"> $temp/dependencies/__version__.py
-cd dependencies
-python __init__.py

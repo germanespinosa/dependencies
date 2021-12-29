@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(dependencies
+project(module
         VERSION 2019.1.0
         DESCRIPTION "Compact test framework"
         LANGUAGES CXX)
