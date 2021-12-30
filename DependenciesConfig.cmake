@@ -80,7 +80,13 @@ macro(install_dependency git_repo)
 
     set(build_or_cache BUILD)
 
-    set(destination_folder ${dependency_folder}/dependency-build)
+    if (CMAKE_BUILD_TYPE MATCHES Release)
+        set(destination_folder ${dependency_folder}/dependency-build-release)
+    else()
+        set(destination_folder ${dependency_folder}/dependency-build-debug)
+    endif()
+
+
     if ( "${git_pull_output}" MATCHES "Already up to date.")
         if (EXISTS "${destination_folder}")
             set(build_or_cache "USE_CACHE")
