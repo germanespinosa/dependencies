@@ -9,6 +9,13 @@ else()
 endif()
 
 make_directory(${dependencies_folder})
+include_directories(${dependencies_folder})
+
+set(ADDITIONAL_CLEAN_FILES "")
+list(APPEND ADDITIONAL_CLEAN_FILES ${CMAKE_CURRENT_BINARY_DIR}/dependency_include)
+list(APPEND ADDITIONAL_CLEAN_FILES ${dependencies_folder})
+set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${ADDITIONAL_CLEAN_FILES}")
+
 
 macro (copy_include)
     foreach(include_folder ${ARGN})
