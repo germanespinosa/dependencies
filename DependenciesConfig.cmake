@@ -66,7 +66,10 @@ macro (add_dependency_output_directory dependency_output_directory)
     link_directories(${dependency_output_directory})
 endmacro()
 
-macro(install_dependency git_repo)
+macro(install_dependency git_repo_branch)
+    string(REPLACE "|" ";" git_repo_branch ${git_repo_branch})
+    list(GET git_repo_branch 0 git_repo)
+    list(LENGTH git_repo_branch has_branch)
 
     execute_process(COMMAND basename ${git_repo}
             OUTPUT_VARIABLE repo_name )
@@ -78,11 +81,36 @@ macro(install_dependency git_repo)
     set(dependency_folder "${dependencies_folder}/${repo_name}")
 
     if (EXISTS "${dependency_folder}")
+        if (${has_branch} GREATER 1)
+            list(GET git_repo_branch 1 git_branch)
+            execute_process(COMMAND git branch
+                    WORKING_DIRECTORY ${dependency_folder}
+                    OUTPUT_VARIABLE dependency_current_branch)
+            if (NOT "$dependency_current_branch" MATCHES "$git_branch")
+                execute_process(COMMAND git checkout ${git_branch}
+                        WORKING_DIRECTORY ${dependency_folder})
+            endif()
+        else()
+            execute_process(COMMAND git branch -a
+                    WORKING_DIRECTORY ${dependency_folder}
+                    OUTPUT_VARIABLE dependency_branches)
+            string(REPLACE "*" "" dependency_branches ${dependency_branches})
+            string(REPLACE " " "" dependency_branches ${dependency_branches})
+            string(REPLACE "\n" ";" dependency_branches ${dependency_branches})
+            list(GET dependency_branches 0 main_branch)
+            execute_process(COMMAND git checkout ${main_branch}
+                    WORKING_DIRECTORY ${dependency_folder})
+        endif()
         execute_process(COMMAND git pull
                 WORKING_DIRECTORY ${dependency_folder}
                 OUTPUT_VARIABLE git_pull_output)
     else()
-        execute_process(COMMAND git -C ${dependencies_folder} clone ${git_repo})
+        if (${has_branch} GREATER 1)
+            list(GET git_repo_branch 1 git_branch)
+            execute_process(COMMAND git -C ${dependencies_folder} clone -b ${git_branch} ${git_repo})
+        else()
+            execute_process(COMMAND git -C ${dependencies_folder} clone ${git_repo})
+        endif()
     endif()
 
     set(build_or_cache BUILD)
