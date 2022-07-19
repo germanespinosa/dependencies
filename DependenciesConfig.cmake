@@ -9,6 +9,7 @@ else()
 endif()
 
 make_directory(${dependencies_folder})
+
 include_directories(${dependencies_folder})
 
 set(ADDITIONAL_CLEAN_FILES "")
@@ -20,7 +21,8 @@ set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${ADDITIONAL_CL
 macro (copy_include)
     foreach(include_folder ${ARGN})
         execute_process(COMMAND bash -c "cp ${include_folder}/* ${CMAKE_CURRENT_BINARY_DIR}/dependency_include/ -r"
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}  )
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                ERROR_QUIET )
     endforeach()
 endmacro()
 
@@ -108,33 +110,39 @@ macro(install_dependency git_repo_branch)
     #checkouts the correct branch
     execute_process(COMMAND git checkout ${git_branch}
             WORKING_DIRECTORY ${dependency_folder}
-            OUTPUT_VARIABLE git_checkout_output)
+            OUTPUT_QUIET ERROR_QUIET)
 
     #pulls changes
     execute_process(COMMAND git pull
             WORKING_DIRECTORY ${dependency_folder}
-            OUTPUT_VARIABLE git_pull_output)
+            OUTPUT_VARIABLE git_pull_output
+            ERROR_QUIET)
 
     set(build_or_cache BUILD)
 
     if (CMAKE_BUILD_TYPE MATCHES Release)
-        set(destination_folder ${dependency_folder}/dependency-build-release)
+        set(destination_folder "${dependency_folder}/dependency-build-release")
     else()
-        set(destination_folder ${dependency_folder}/dependency-build-debug)
+        set(destination_folder "${dependency_folder}/dependency-build-debug")
     endif()
 
+    set(dependency_build_cache_file "${destination_folder}/dependency-build-cache")
 
-    if ( "${git_pull_output}" MATCHES "Already up to date.")
-        if (EXISTS "${destination_folder}")
-            set(build_or_cache "USE_CACHE")
+    if ( NOT "${git_pull_output}" MATCHES "Already up to date.")
+        if (EXISTS "${dependency_build_cache_file}")
+            file(REMOVE "${dependency_build_cache_file}")
         endif()
     endif()
 
-    if ("${build_or_cache}" MATCHES "BUILD")
+    if (NOT EXISTS "${dependency_build_cache_file}")
         make_directory("${destination_folder}")
 
         execute_process(COMMAND bash -c "DEPENDENCIES_FOLDER='${dependencies_folder}' BUILD_AS_DEPENDENCY=TRUE CATCH_TESTS=NO_TESTS cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} '-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}' -G 'CodeBlocks - Unix Makefiles' ${dependency_folder}"
-            WORKING_DIRECTORY ${destination_folder})
+            WORKING_DIRECTORY ${destination_folder}
+            RESULT_VARIABLE dependency_cmake_result )
+        if (NOT dependency_cmake_result EQUAL "0")
+            message(FATAL_ERROR "failed to load dependency cmake file" )
+        endif()
     endif()
 
     if (EXISTS "${destination_folder}/dependency_include")
@@ -159,9 +167,13 @@ macro(install_dependency git_repo_branch)
         endforeach()
     endif()
 
-    if ("${build_or_cache}" MATCHES "BUILD")
+    if (NOT EXISTS "${dependency_build_cache_file}")
         execute_process(COMMAND make -j
-                WORKING_DIRECTORY ${destination_folder})
+                WORKING_DIRECTORY ${destination_folder}
+                RESULT_VARIABLE dependency_make_result)
+        if (NOT dependency_make_result EQUAL "0")
+            message(FATAL_ERROR "failed to build dependency cmake file" )
+        endif()
     endif()
     set (repo_targets "${destination_folder}/${repo_name}Targets.cmake")
 
@@ -171,7 +183,6 @@ macro(install_dependency git_repo_branch)
         list(GET variadic_args 0 package_name)
         add_dependency_package ("${package_name}|${destination_folder}")
     endif ()
-
+    file(APPEND "${destination_folder}/dependency-build-cache" "ready")
     add_dependency_output_directory(${destination_folder})
-
 endmacro()
