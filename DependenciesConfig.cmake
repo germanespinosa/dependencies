@@ -78,40 +78,42 @@ macro(install_dependency git_repo_branch)
 
     message(STATUS "\nConfiguring dependency ${repo_name}")
 
+    if (NOT EXISTS "${dependencies_folder}")
+    endif()
+
+
     set(dependency_folder "${dependencies_folder}/${repo_name}")
 
-    if (EXISTS "${dependency_folder}")
-        if (${has_branch} GREATER 1)
-            list(GET git_repo_branch 1 git_branch)
-            execute_process(COMMAND git branch
-                    WORKING_DIRECTORY ${dependency_folder}
-                    OUTPUT_VARIABLE dependency_current_branch)
-            if (NOT "$dependency_current_branch" MATCHES "$git_branch")
-                execute_process(COMMAND git checkout ${git_branch}
-                        WORKING_DIRECTORY ${dependency_folder})
-            endif()
-        else()
-            execute_process(COMMAND git branch -a
-                    WORKING_DIRECTORY ${dependency_folder}
-                    OUTPUT_VARIABLE dependency_branches)
-            string(REPLACE "*" "" dependency_branches ${dependency_branches})
-            string(REPLACE " " "" dependency_branches ${dependency_branches})
-            string(REPLACE "\n" ";" dependency_branches ${dependency_branches})
-            list(GET dependency_branches 0 main_branch)
-            execute_process(COMMAND git checkout ${main_branch}
-                    WORKING_DIRECTORY ${dependency_folder})
-        endif()
-        execute_process(COMMAND git pull
-                WORKING_DIRECTORY ${dependency_folder}
-                OUTPUT_VARIABLE git_pull_output)
-    else()
-        if (${has_branch} GREATER 1)
-            list(GET git_repo_branch 1 git_branch)
-            execute_process(COMMAND git -C ${dependencies_folder} clone -b ${git_branch} ${git_repo})
-        else()
-            execute_process(COMMAND git -C ${dependencies_folder} clone ${git_repo})
-        endif()
+    #if the dependency folder doesn't exists does the initial cloning of the repo
+    if (NOT EXISTS "${dependency_folder}")
+        execute_process(COMMAND git -C ${dependencies_folder} clone ${git_repo})
     endif()
+
+    #if it has to switch branches, does the switch if not remains int he main branch
+    if (${has_branch} GREATER 1)
+        list(GET git_repo_branch 1 git_branch)
+    else()
+        #determines the main branch
+        execute_process(COMMAND git branch -a
+                WORKING_DIRECTORY ${dependency_folder}
+                OUTPUT_VARIABLE dependency_branches)
+        string(REPLACE "*" "" dependency_branches ${dependency_branches})
+        string(REPLACE " " "" dependency_branches ${dependency_branches})
+        string(REPLACE "\n" ";" dependency_branches ${dependency_branches})
+        list(GET dependency_branches 0 main_branch)
+
+        set(git_branch ${main_branch})
+    endif()
+
+    #checkouts the correct branch
+    execute_process(COMMAND git checkout ${git_branch}
+            WORKING_DIRECTORY ${dependency_folder}
+            OUTPUT_VARIABLE git_checkout_output)
+
+    #pulls changes
+    execute_process(COMMAND git pull
+            WORKING_DIRECTORY ${dependency_folder}
+            OUTPUT_VARIABLE git_pull_output)
 
     set(build_or_cache BUILD)
 
