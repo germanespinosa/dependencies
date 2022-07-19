@@ -80,11 +80,16 @@ macro(install_dependency git_repo_branch)
 
     message(STATUS "\nConfiguring dependency ${repo_name}")
 
-    if (NOT EXISTS "${dependencies_folder}")
+    set(dependency_folder "${dependencies_folder}/${repo_name}")
+
+    if (CMAKE_BUILD_TYPE MATCHES Release)
+        set(destination_folder "${dependency_folder}/dependency-build-release")
+    else()
+        set(destination_folder "${dependency_folder}/dependency-build-debug")
     endif()
 
+    set(dependency_build_cache_file "${destination_folder}/dependency-build-cache")
 
-    set(dependency_folder "${dependencies_folder}/${repo_name}")
 
     #if the dependency folder doesn't exists does the initial cloning of the repo
     if (NOT EXISTS "${dependency_folder}")
@@ -110,7 +115,14 @@ macro(install_dependency git_repo_branch)
     #checkouts the correct branch
     execute_process(COMMAND git checkout ${git_branch}
             WORKING_DIRECTORY ${dependency_folder}
-            OUTPUT_QUIET ERROR_QUIET)
+            ERROR_VARIABLE dependency_checkout_error
+            OUTPUT_VARIABLE dependency_checkout_output)
+
+    if (NOT ${dependency_checkout_error} MATCHES "Already on")
+        if (EXISTS "${dependency_build_cache_file}")
+            file(REMOVE "${dependency_build_cache_file}")
+        endif()
+    endif()
 
     #pulls changes
     execute_process(COMMAND git pull
@@ -120,13 +132,6 @@ macro(install_dependency git_repo_branch)
 
     set(build_or_cache BUILD)
 
-    if (CMAKE_BUILD_TYPE MATCHES Release)
-        set(destination_folder "${dependency_folder}/dependency-build-release")
-    else()
-        set(destination_folder "${dependency_folder}/dependency-build-debug")
-    endif()
-
-    set(dependency_build_cache_file "${destination_folder}/dependency-build-cache")
 
     if ( NOT "${git_pull_output}" MATCHES "Already up to date.")
         if (EXISTS "${dependency_build_cache_file}")
