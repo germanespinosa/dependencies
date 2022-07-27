@@ -1,3 +1,6 @@
+set(dependencies_ignore "${CMAKE_C_COMPILER}")
+
+
 make_directory (${CMAKE_CURRENT_BINARY_DIR}/dependency_include)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/dependency_include)
 
@@ -5,7 +8,7 @@ if (NOT $ENV{DEPENDENCIES_FOLDER} EQUAL "")
     set(dependencies_folder "$ENV{DEPENDENCIES_FOLDER}" CACHE PATH "")
     message ("dependency folder parameter: $ENV{DEPENDENCIES_FOLDER}")
 else()
-    set(dependencies_folder "${CMAKE_CURRENT_SOURCE_DIR}/dependencies" CACHE PATH "")
+    set(dependencies_folder "${CMAKE_CURRENT_SOURCE_DIR}/cmake-dependencies" CACHE PATH "")
 endif()
 
 make_directory(${dependencies_folder})
@@ -16,7 +19,6 @@ set(ADDITIONAL_CLEAN_FILES "")
 list(APPEND ADDITIONAL_CLEAN_FILES ${CMAKE_CURRENT_BINARY_DIR}/dependency_include)
 list(APPEND ADDITIONAL_CLEAN_FILES ${dependencies_folder})
 set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${ADDITIONAL_CLEAN_FILES}")
-
 
 macro (copy_include)
     foreach(include_folder ${ARGN})
@@ -80,7 +82,17 @@ macro(install_dependency git_repo_branch)
 
     message(STATUS "\nConfiguring dependency ${repo_name}")
 
-    set(dependency_folder "${dependencies_folder}/${repo_name}")
+    if (${has_branch} GREATER 1)
+        list(GET git_repo_branch 1 git_branch)
+        string("MD5" git_branch_hash "${git_branch}")
+        string(SUBSTRING ${git_branch_hash} 24 -1 git_branch_hash)
+        set(dependency_folder "${dependencies_folder}/${repo_name}_${git_branch_hash}")
+    else()
+        set(dependency_folder "${dependencies_folder}/${repo_name}")
+    endif()
+
+    #wait for any other build
+    file(LOCK ${dependency_folder}_build_in_progress)
 
     if (CMAKE_BUILD_TYPE MATCHES Release)
         set(destination_folder "${dependency_folder}/dependency-build-release")
@@ -90,37 +102,14 @@ macro(install_dependency git_repo_branch)
 
     set(dependency_build_cache_file "${destination_folder}/dependency-build-cache")
 
-
-    #if the dependency folder doesn't exists does the initial cloning of the repo
+    #if the dependency folder doesn't exists does the initial cloning of the repo / branch
     if (NOT EXISTS "${dependency_folder}")
-        execute_process(COMMAND git -C ${dependencies_folder} clone ${git_repo})
-    endif()
-
-    #if it has to switch branches, does the switch if not remains int he main branch
-    if (${has_branch} GREATER 1)
-        list(GET git_repo_branch 1 git_branch)
-    else()
-        #determines the main branch
-        execute_process(COMMAND git branch -a
-                WORKING_DIRECTORY ${dependency_folder}
-                OUTPUT_VARIABLE dependency_branches)
-        string(REPLACE "*" "" dependency_branches ${dependency_branches})
-        string(REPLACE " " "" dependency_branches ${dependency_branches})
-        string(REPLACE "\n" ";" dependency_branches ${dependency_branches})
-        list(GET dependency_branches 0 main_branch)
-
-        set(git_branch ${main_branch})
-    endif()
-
-    #checkouts the correct branch
-    execute_process(COMMAND git checkout ${git_branch}
-            WORKING_DIRECTORY ${dependency_folder}
-            ERROR_VARIABLE dependency_checkout_error
-            OUTPUT_VARIABLE dependency_checkout_output)
-
-    if (NOT ${dependency_checkout_error} MATCHES "Already on")
-        if (EXISTS "${dependency_build_cache_file}")
-            file(REMOVE "${dependency_build_cache_file}")
+        if (${has_branch} GREATER 1)
+            execute_process(COMMAND git clone --branch ${git_branch} ${git_repo} ${dependency_folder}
+                    WORKING_DIRECTORY ${dependencies_folder})
+        else()
+            execute_process(COMMAND git clone ${git_repo} ${dependency_folder}
+                    WORKING_DIRECTORY ${dependencies_folder})
         endif()
     endif()
 
@@ -131,7 +120,6 @@ macro(install_dependency git_repo_branch)
             ERROR_QUIET)
 
     set(build_or_cache BUILD)
-
 
     if ( NOT "${git_pull_output}" MATCHES "Already up to date.")
         if (EXISTS "${dependency_build_cache_file}")
@@ -190,4 +178,6 @@ macro(install_dependency git_repo_branch)
     endif ()
     file(APPEND "${destination_folder}/dependency-build-cache" "ready")
     add_dependency_output_directory(${destination_folder})
+    file(LOCK ${dependency_folder}_build_in_progress RELEASE)
+    file(REMOVE ${dependency_folder}_build_in_progress)
 endmacro()
