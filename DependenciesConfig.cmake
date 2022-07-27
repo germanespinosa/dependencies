@@ -1,9 +1,6 @@
 set(dependencies_ignore "${CMAKE_C_COMPILER}")
 
 
-make_directory (${CMAKE_CURRENT_BINARY_DIR}/dependency_include)
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/dependency_include)
-
 if (NOT $ENV{DEPENDENCIES_FOLDER} EQUAL "")
     set(dependencies_folder "$ENV{DEPENDENCIES_FOLDER}" CACHE PATH "")
     message ("dependency folder parameter: $ENV{DEPENDENCIES_FOLDER}")
@@ -16,25 +13,17 @@ make_directory(${dependencies_folder})
 include_directories(${dependencies_folder})
 
 set(ADDITIONAL_CLEAN_FILES "")
-list(APPEND ADDITIONAL_CLEAN_FILES ${CMAKE_CURRENT_BINARY_DIR}/dependency_include)
 list(APPEND ADDITIONAL_CLEAN_FILES ${dependencies_folder})
 set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${ADDITIONAL_CLEAN_FILES}")
 
-macro (copy_include)
-    foreach(include_folder ${ARGN})
-        execute_process(COMMAND bash -c "cp ${include_folder}/* ${CMAKE_CURRENT_BINARY_DIR}/dependency_include/ -r"
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                ERROR_QUIET )
-    endforeach()
-endmacro()
-
-macro (dependency_include)
-    if ("$ENV{BUILD_AS_DEPENDENCY}" MATCHES "TRUE")
-        copy_include(${ARGN})
-    else()
-        include_directories(${ARGN})
-    endif()
-endmacro()
+function(get_directory_full_path dir_rel_path dir_full_path)
+    execute_process(COMMAND bash -c "cd ${dir_rel_path}; pwd"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            OUTPUT_VARIABLE full_path
+            ERROR_QUIET)
+    string(STRIP "${full_path}" full_path)
+    set(${dir_full_path} "${full_path}" PARENT_SCOPE)
+endfunction()
 
 function (append_new file_path new_string)
     if (NOT EXISTS "${file_path}")
@@ -47,6 +36,25 @@ function (append_new file_path new_string)
         endif()
     endif()
 endfunction()
+
+
+macro (add_dependency_include_directory include_dir)
+    include_directories(${include_dir})
+    append_new(${CMAKE_CURRENT_BINARY_DIR}/dependency_includes.txt "${include_dir};")
+endmacro()
+
+macro (dependency_include)
+    if ("$ENV{BUILD_AS_DEPENDENCY}" MATCHES "TRUE")
+        foreach(dependency_include_DIR ${ARGN})
+           if (NOT ${dependency_include_DIR} EQUAL "")
+                get_directory_full_path(${dependency_include_DIR} dependency_include_DIR_full_path)
+                add_dependency_include_directory("${dependency_include_DIR_full_path}")
+           endif()
+        endforeach()
+    else()
+        include_directories(${ARGN})
+    endif()
+endmacro()
 
 macro (add_dependency_package package_name_and_dir)
     message(STATUS "Adding package ${package_name_and_dir} to dependency tree")
@@ -100,7 +108,7 @@ macro(install_dependency git_repo_branch)
         set(destination_folder "${dependency_folder}/dependency-build-debug")
     endif()
 
-    set(dependency_build_cache_file "${destination_folder}/dependency-build-cache")
+    set(dependency_build_cache_file "${destination_folder}/dependency_build_cache.txt")
 
     #if the dependency folder doesn't exists does the initial cloning of the repo / branch
     if (NOT EXISTS "${dependency_folder}")
@@ -133,13 +141,19 @@ macro(install_dependency git_repo_branch)
         execute_process(COMMAND bash -c "DEPENDENCIES_FOLDER='${dependencies_folder}' BUILD_AS_DEPENDENCY=TRUE CATCH_TESTS=NO_TESTS cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} '-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}' -G 'CodeBlocks - Unix Makefiles' ${dependency_folder}"
             WORKING_DIRECTORY ${destination_folder}
             RESULT_VARIABLE dependency_cmake_result )
+
         if (NOT dependency_cmake_result EQUAL "0")
             message(FATAL_ERROR "failed to load dependency cmake file" )
         endif()
     endif()
 
-    if (EXISTS "${destination_folder}/dependency_include")
-        copy_include(${destination_folder}/dependency_include)
+    if (EXISTS "${destination_folder}/dependency_includes.txt")
+        file(READ ${destination_folder}/dependency_includes.txt dependency_includes)
+        foreach(dependency_include_DIR ${dependency_includes})
+            if (NOT ${dependency_include_DIR} EQUAL "")
+                add_dependency_include_directory(${dependency_include_DIR})
+            endif()
+        endforeach()
     endif()
 
     if (EXISTS "${destination_folder}/dependencies_outputs.txt")
@@ -176,6 +190,7 @@ macro(install_dependency git_repo_branch)
         list(GET variadic_args 0 package_name)
         add_dependency_package ("${package_name}|${destination_folder}")
     endif ()
+
     file(APPEND "${destination_folder}/dependency-build-cache" "ready")
     add_dependency_output_directory(${destination_folder})
     file(LOCK ${dependency_folder}_build_in_progress RELEASE)
