@@ -191,7 +191,7 @@ macro(install_dependency git_repo_branch)
         add_dependency_package ("${package_name}|${destination_folder}")
     endif ()
 
-    file(APPEND "${destination_folder}/dependency-build-cache" "ready")
+    file(APPEND "${dependency_build_cache_file}" "ready")
     add_dependency_output_directory(${destination_folder})
     file(LOCK ${dependency_folder}_build_in_progress RELEASE)
     file(REMOVE ${dependency_folder}_build_in_progress)
