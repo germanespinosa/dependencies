@@ -83,12 +83,29 @@ macro(install_dependency git_repo_branch)
     list(GET git_repo_branch 0 git_repo)
     list(LENGTH git_repo_branch has_branch)
 
+    set(dependency_build TRUE)
+    set(dependency_static FALSE)
+    set(dependency_package_name "")
+    foreach(arg IN ITEMS ${ARGN})
+        if ("${arg}" MATCHES "NO_BUILD")
+            set(dependency_build FALSE)
+        elseif("${arg}" MATCHES "STATIC")
+            set(dependency_static TRUE)
+        else()
+            set(dependency_package_name ${arg})
+        endif()
+    endforeach()
     execute_process(COMMAND basename ${git_repo}
             OUTPUT_VARIABLE repo_name )
 
     string(REPLACE "\n" "" repo_name ${repo_name})
 
     message(STATUS "\nConfiguring dependency ${repo_name}")
+    message(STATUS "BUILD=${dependency_build}")
+    message(STATUS "STATIC=${dependency_static}")
+    if (NOT "${dependency_package_name}" STREQUAL "")
+        message(STATUS "PACKAGE NAME=${dependency_package_name}")
+    endif()
 
     if (${has_branch} GREATER 1)
         list(GET git_repo_branch 1 git_branch)
@@ -122,75 +139,77 @@ macro(install_dependency git_repo_branch)
     endif()
 
     #pulls changes
-    execute_process(COMMAND git pull
-            WORKING_DIRECTORY ${dependency_folder}
-            OUTPUT_VARIABLE git_pull_output
-            ERROR_QUIET)
+    if (NOT "${dependency_static}" MATCHES "TRUE")
+        execute_process(COMMAND git pull
+                WORKING_DIRECTORY ${dependency_folder}
+                OUTPUT_VARIABLE git_pull_output
+                ERROR_QUIET)
 
-    set(build_or_cache BUILD)
-
-    if ( NOT "${git_pull_output}" MATCHES "Already up to date.")
-        if (EXISTS "${dependency_build_cache_file}")
-            file(REMOVE "${dependency_build_cache_file}")
+        if ( NOT "${git_pull_output}" MATCHES "Already up to date.")
+            if (EXISTS "${dependency_build_cache_file}")
+                file(REMOVE "${dependency_build_cache_file}")
+            endif()
         endif()
     endif()
 
-    if (NOT EXISTS "${dependency_build_cache_file}")
-        make_directory("${destination_folder}")
+    make_directory("${destination_folder}")
 
-        execute_process(COMMAND bash -c "DEPENDENCIES_FOLDER='${dependencies_folder}' BUILD_AS_DEPENDENCY=TRUE CATCH_TESTS=NO_TESTS cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} '-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}' -G 'CodeBlocks - Unix Makefiles' ${dependency_folder}"
-            WORKING_DIRECTORY ${destination_folder}
-            RESULT_VARIABLE dependency_cmake_result )
+    if ("${dependency_build}" MATCHES "TRUE")
+        if (NOT EXISTS "${dependency_build_cache_file}")
 
-        if (NOT dependency_cmake_result EQUAL "0")
-            message(FATAL_ERROR "failed to load dependency cmake file" )
-        endif()
-    endif()
-
-    if (EXISTS "${destination_folder}/dependency_includes.txt")
-        file(READ ${destination_folder}/dependency_includes.txt dependency_includes)
-        foreach(dependency_include_DIR ${dependency_includes})
-            if (NOT ${dependency_include_DIR} EQUAL "")
-                add_dependency_include_directory(${dependency_include_DIR})
-            endif()
-        endforeach()
-    endif()
-
-    if (EXISTS "${destination_folder}/dependencies_outputs.txt")
-        file(READ ${destination_folder}/dependencies_outputs.txt dependencies_outputs)
-        foreach(output_folder ${dependencies_outputs})
-            if (NOT ${output_folder} EQUAL "")
-                add_dependency_output_directory(${output_folder})
-            endif()
-        endforeach()
-    endif()
-
-    if (EXISTS "${destination_folder}/dependencies_packages.txt")
-        file(READ ${destination_folder}/dependencies_packages.txt dependencies_packages)
-        foreach(dependencies_package_DIR ${dependencies_packages})
-            if (NOT ${dependencies_package_DIR} EQUAL "")
-                add_dependency_package(${dependencies_package_DIR})
-            endif()
-        endforeach()
-    endif()
-
-    if (NOT EXISTS "${dependency_build_cache_file}")
-        execute_process(COMMAND make -j
+            execute_process(COMMAND bash -c "DEPENDENCIES_FOLDER='${dependencies_folder}' BUILD_AS_DEPENDENCY=TRUE CATCH_TESTS=NO_TESTS cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} '-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}' -G 'CodeBlocks - Unix Makefiles' ${dependency_folder}"
                 WORKING_DIRECTORY ${destination_folder}
-                RESULT_VARIABLE dependency_make_result)
-        if (NOT dependency_make_result EQUAL "0")
-            message(FATAL_ERROR "failed to build dependency cmake file" )
+                RESULT_VARIABLE dependency_cmake_result )
+
+            if (NOT dependency_cmake_result EQUAL "0")
+                message(FATAL_ERROR "failed to load dependency cmake file" )
+            endif()
         endif()
+
+        if (EXISTS "${destination_folder}/dependency_includes.txt")
+            file(READ ${destination_folder}/dependency_includes.txt dependency_includes)
+            foreach(dependency_include_DIR ${dependency_includes})
+                if (NOT ${dependency_include_DIR} EQUAL "")
+                    add_dependency_include_directory(${dependency_include_DIR})
+                endif()
+            endforeach()
+        endif()
+
+        if (EXISTS "${destination_folder}/dependencies_outputs.txt")
+            file(READ ${destination_folder}/dependencies_outputs.txt dependencies_outputs)
+            foreach(output_folder ${dependencies_outputs})
+                if (NOT ${output_folder} EQUAL "")
+                    add_dependency_output_directory(${output_folder})
+                endif()
+            endforeach()
+        endif()
+
+        if (EXISTS "${destination_folder}/dependencies_packages.txt")
+            file(READ ${destination_folder}/dependencies_packages.txt dependencies_packages)
+            foreach(dependencies_package_DIR ${dependencies_packages})
+                if (NOT ${dependencies_package_DIR} EQUAL "")
+                    add_dependency_package(${dependencies_package_DIR})
+                endif()
+            endforeach()
+        endif()
+
+        if (NOT EXISTS "${dependency_build_cache_file}")
+            execute_process(COMMAND make -j
+                    WORKING_DIRECTORY ${destination_folder}
+                    RESULT_VARIABLE dependency_make_result)
+            if (NOT dependency_make_result EQUAL "0")
+                message(FATAL_ERROR "failed to build dependency cmake file" )
+            endif()
+        endif()
+        set (repo_targets "${destination_folder}/${repo_name}Targets.cmake")
+
+
+        set (variadic_args ${ARGN})
+        list(LENGTH variadic_args variadic_count)
+        if (NOT "${dependency_package_name}" STREQUAL "")
+            add_dependency_package ("${dependency_package_name}|${destination_folder}")
+        endif ()
     endif()
-    set (repo_targets "${destination_folder}/${repo_name}Targets.cmake")
-
-    set (variadic_args ${ARGN})
-    list(LENGTH variadic_args variadic_count)
-    if (${variadic_count} GREATER 0)
-        list(GET variadic_args 0 package_name)
-        add_dependency_package ("${package_name}|${destination_folder}")
-    endif ()
-
     file(APPEND "${dependency_build_cache_file}" "ready")
     add_dependency_output_directory(${destination_folder})
     file(LOCK ${dependency_folder}_build_in_progress RELEASE)
