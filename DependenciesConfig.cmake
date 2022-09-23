@@ -1,7 +1,7 @@
 set(dependencies_ignore "${CMAKE_C_COMPILER}")
 
-
-if (NOT $ENV{DEPENDENCIES_FOLDER} EQUAL "")
+if (NOT ${DEPENDENCIES_FOLDER} EQUAL "")
+    get_filename_component(DEPENDENCIES_FOLDER "${DEPENDENCIES_FOLDER}" ABSOLUTE )
     set(dependencies_folder "$ENV{DEPENDENCIES_FOLDER}" CACHE PATH "")
     message ("dependency folder parameter: $ENV{DEPENDENCIES_FOLDER}")
 else()
@@ -16,14 +16,6 @@ set(ADDITIONAL_CLEAN_FILES "")
 list(APPEND ADDITIONAL_CLEAN_FILES ${dependencies_folder})
 set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${ADDITIONAL_CLEAN_FILES}")
 
-function(get_directory_full_path dir_rel_path dir_full_path)
-    execute_process(COMMAND bash -c "cd ${dir_rel_path}; pwd"
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            OUTPUT_VARIABLE full_path
-            ERROR_QUIET)
-    string(STRIP "${full_path}" full_path)
-    set(${dir_full_path} "${full_path}" PARENT_SCOPE)
-endfunction()
 
 function (append_new file_path new_string)
     if (NOT EXISTS "${file_path}")
@@ -46,10 +38,10 @@ endmacro()
 macro (dependency_include)
     if ("$ENV{BUILD_AS_DEPENDENCY}" MATCHES "TRUE")
         foreach(dependency_include_DIR ${ARGN})
-           if (NOT ${dependency_include_DIR} EQUAL "")
-                get_directory_full_path(${dependency_include_DIR} dependency_include_DIR_full_path)
+            if (NOT ${dependency_include_DIR} EQUAL "")
+                get_filename_component(dependency_include_DIR_full_path "${dependency_include_DIR}" ABSOLUTE )
                 add_dependency_include_directory("${dependency_include_DIR_full_path}")
-           endif()
+            endif()
         endforeach()
     else()
         include_directories(${ARGN})
@@ -78,16 +70,29 @@ macro (add_dependency_output_directory dependency_output_directory)
     link_directories(${dependency_output_directory})
 endmacro()
 
-macro(install_dependency git_repo_branch)
-    string(REPLACE "|" ";" git_repo_branch ${git_repo_branch})
-    list(GET git_repo_branch 0 git_repo)
-    list(LENGTH git_repo_branch has_branch)
+macro(install_dependency git_repo)
+
+    execute_process(COMMAND basename ${git_repo}
+            OUTPUT_VARIABLE repo_name )
+
+    get_filename_component(repo_name ${git_repo} NAME)
 
     set(dependency_build TRUE)
     set(dependency_static FALSE)
     set(dependency_package_name "")
+    set(dependency_branch_coming_up FALSE)
+    set(dependency_folder "${dependencies_folder}/${repo_name}")
     foreach(arg IN ITEMS ${ARGN})
-        if ("${arg}" MATCHES "NO_BUILD")
+        if (${dependency_branch_coming_up})
+            set(git_branch "${arg}")
+            set(has_branch TRUE)
+            STRING(REGEX REPLACE "[^a-zA-Z0-9]" "_" git_branch_folder ${git_branch})
+            set(dependency_folder "${dependency_folder}_${git_branch_folder}")
+            continue()
+        endif()
+        if ("${arg}" MATCHES "BRANCH")
+            set(dependency_branch_coming_up TRUE)
+        elseif ("${arg}" MATCHES "NO_BUILD")
             set(dependency_build FALSE)
         elseif("${arg}" MATCHES "STATIC")
             set(dependency_static TRUE)
@@ -95,25 +100,12 @@ macro(install_dependency git_repo_branch)
             set(dependency_package_name ${arg})
         endif()
     endforeach()
-    execute_process(COMMAND basename ${git_repo}
-            OUTPUT_VARIABLE repo_name )
-
-    string(REPLACE "\n" "" repo_name ${repo_name})
 
     message(STATUS "\nConfiguring dependency ${repo_name}")
     message(STATUS "BUILD=${dependency_build}")
     message(STATUS "STATIC=${dependency_static}")
     if (NOT "${dependency_package_name}" STREQUAL "")
         message(STATUS "PACKAGE NAME=${dependency_package_name}")
-    endif()
-
-    if (${has_branch} GREATER 1)
-        list(GET git_repo_branch 1 git_branch)
-        string("MD5" git_branch_hash "${git_branch}")
-        string(SUBSTRING ${git_branch_hash} 24 -1 git_branch_hash)
-        set(dependency_folder "${dependencies_folder}/${repo_name}_${git_branch_hash}")
-    else()
-        set(dependency_folder "${dependencies_folder}/${repo_name}")
     endif()
 
     #wait for any other build
@@ -129,7 +121,7 @@ macro(install_dependency git_repo_branch)
 
     #if the dependency folder doesn't exists does the initial cloning of the repo / branch
     if (NOT EXISTS "${dependency_folder}")
-        if (${has_branch} GREATER 1)
+        if (${has_branch})
             execute_process(COMMAND git clone --branch ${git_branch} ${git_repo} ${dependency_folder}
                     WORKING_DIRECTORY ${dependencies_folder})
         else()
@@ -139,7 +131,7 @@ macro(install_dependency git_repo_branch)
     endif()
 
     #pulls changes
-    if (NOT "${dependency_static}" MATCHES "TRUE")
+    if (${dependency_static})
         execute_process(COMMAND git pull
                 WORKING_DIRECTORY ${dependency_folder}
                 OUTPUT_VARIABLE git_pull_output
@@ -154,12 +146,12 @@ macro(install_dependency git_repo_branch)
 
     make_directory("${destination_folder}")
 
-    if ("${dependency_build}" MATCHES "TRUE")
+    if (${dependency_build})
         if (NOT EXISTS "${dependency_build_cache_file}")
 
-            execute_process(COMMAND bash -c "DEPENDENCIES_FOLDER='${dependencies_folder}' BUILD_AS_DEPENDENCY=TRUE CATCH_TESTS=NO_TESTS cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} '-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}' -G 'CodeBlocks - Unix Makefiles' ${dependency_folder}"
-                WORKING_DIRECTORY ${destination_folder}
-                RESULT_VARIABLE dependency_cmake_result )
+            execute_process(COMMAND bash -c "BUILD_AS_DEPENDENCY=TRUE CATCH_TESTS=NO_TESTS cmake --no-warn-unused-cli '-DDEPENDENCIES_FOLDER=${dependencies_folder}' -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} '-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}' -G 'CodeBlocks - Unix Makefiles' ${dependency_folder}"
+                    WORKING_DIRECTORY ${destination_folder}
+                    RESULT_VARIABLE dependency_cmake_result )
 
             if (NOT dependency_cmake_result EQUAL "0")
                 message(FATAL_ERROR "failed to load dependency cmake file" )
