@@ -2,8 +2,8 @@ set(dependencies_ignore "${CMAKE_C_COMPILER}")
 
 if (NOT ${DEPENDENCIES_FOLDER} EQUAL "")
     get_filename_component(DEPENDENCIES_FOLDER "${DEPENDENCIES_FOLDER}" ABSOLUTE )
-    set(dependencies_folder "$ENV{DEPENDENCIES_FOLDER}" CACHE PATH "")
-    message ("dependency folder parameter: $ENV{DEPENDENCIES_FOLDER}")
+    set(dependencies_folder "{DEPENDENCIES_FOLDER}" CACHE PATH "")
+    message ("dependency folder parameter: {DEPENDENCIES_FOLDER}")
 else()
     set(dependencies_folder "${CMAKE_CURRENT_SOURCE_DIR}/cmake-dependencies" CACHE PATH "")
 endif()
@@ -36,7 +36,7 @@ macro (add_dependency_include_directory include_dir)
 endmacro()
 
 macro (dependency_include)
-    if ("$ENV{BUILD_AS_DEPENDENCY}" MATCHES "TRUE")
+    if (${BUILD_AS_DEPENDENCY})
         foreach(dependency_include_DIR ${ARGN})
             if (NOT ${dependency_include_DIR} EQUAL "")
                 get_filename_component(dependency_include_DIR_full_path "${dependency_include_DIR}" ABSOLUTE )
@@ -149,7 +149,7 @@ macro(install_dependency git_repo)
     if (${dependency_build})
         if (NOT EXISTS "${dependency_build_cache_file}")
 
-            execute_process(COMMAND bash -c "BUILD_AS_DEPENDENCY=TRUE CATCH_TESTS=NO_TESTS cmake --no-warn-unused-cli '-DDEPENDENCIES_FOLDER=${dependencies_folder}' -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} '-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}' -G 'CodeBlocks - Unix Makefiles' ${dependency_folder}"
+            execute_process(COMMAND bash -c "CATCH_TESTS=NO_TESTS cmake --no-warn-unused-cli '-BUILD_AS_DEPENDENCY=TRUE -DDEPENDENCIES_FOLDER=${dependencies_folder}' -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} '-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}' -G 'CodeBlocks - Unix Makefiles' ${dependency_folder}"
                     WORKING_DIRECTORY ${destination_folder}
                     RESULT_VARIABLE dependency_cmake_result )
 
