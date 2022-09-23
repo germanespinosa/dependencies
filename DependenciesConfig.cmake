@@ -1,6 +1,6 @@
 set(dependencies_ignore "${CMAKE_C_COMPILER}")
 
-if (NOT "${DEPENDENCIES_FOLDER}" EQUAL "")
+if ("${DEPENDENCIES_FOLDER}" MATCHES "")
     get_filename_component(DEPENDENCIES_FOLDER "${DEPENDENCIES_FOLDER}" ABSOLUTE )
     set(dependencies_folder "${DEPENDENCIES_FOLDER}" CACHE PATH "")
     message ("dependency folder parameter: ${DEPENDENCIES_FOLDER}")
