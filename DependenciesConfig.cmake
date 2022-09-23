@@ -2,12 +2,13 @@ set(dependencies_ignore "${CMAKE_C_COMPILER}")
 
 if ("${DEPENDENCIES_FOLDER}" MATCHES "")
     set(dependencies_folder "${CMAKE_CURRENT_SOURCE_DIR}/cmake-dependencies" CACHE PATH "")
+    message (STATUS "Dependencies at: ${dependencies_folder} - ${DEPENDENCIES_FOLDER}")
 else()
+    message (STATUS "Dependencies: ${dependencies_folder} - ${DEPENDENCIES_FOLDER}")
     get_filename_component(DEPENDENCIES_FOLDER "${DEPENDENCIES_FOLDER}" ABSOLUTE )
     set(dependencies_folder "${DEPENDENCIES_FOLDER}" CACHE PATH "")
 endif()
 
-message (STATUS "Dependency folder: ${dependencies_folder}")
 
 make_directory(${dependencies_folder})
 
