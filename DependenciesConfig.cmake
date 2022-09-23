@@ -149,7 +149,7 @@ macro(install_dependency git_repo)
     if (${dependency_build})
         if (NOT EXISTS "${dependency_build_cache_file}")
 
-            execute_process(COMMAND bash -c "CATCH_TESTS=NO_TESTS cmake --no-warn-unused-cli '-DBUILD_AS_DEPENDENCY=TRUE' '-DDEPENDENCIES_FOLDER=${dependencies_folder}' -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} '-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}' -G 'CodeBlocks - Unix Makefiles' ${dependency_folder}"
+            execute_process(COMMAND bash -c "CATCH_TESTS=NO_TESTS cmake --no-warn-unused-cli -DBUILD_AS_DEPENDENCY=TRUE '-DDEPENDENCIES_FOLDER=${dependencies_folder}' -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} '-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}' -G 'CodeBlocks - Unix Makefiles' ${dependency_folder}"
                     WORKING_DIRECTORY ${destination_folder}
                     RESULT_VARIABLE dependency_cmake_result )
 
