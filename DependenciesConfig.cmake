@@ -7,7 +7,7 @@ else()
     set(dependencies_folder "${DEPENDENCIES_FOLDER}" CACHE PATH "")
 endif()
 
-message ("dependency folder parameter: ${dependencies_folder}")
+message (STATUS "Dependency folder: ${dependencies_folder}")
 
 make_directory(${dependencies_folder})
 
