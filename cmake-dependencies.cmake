@@ -65,21 +65,21 @@ endforeach()
 
 
 
-# Because OUTPUT option may not use generator expressions,
-# extract name of file from target's properties.
-get_target_property(mytarget_basename mytarget OUTPUT_NAME)
-get_target_property(mytarget_suffix mytarget SUFFIX)
-set(mytarget_filename ${mytarget_basename}${mytarget_suffix})
-# make copied file be dependent from one which is build.
-# Note, that DEPENDS here creates dependencies both from the target
-# and from the file it creates.
-add_custom_command(OUTPUT
-        ${CMAKE_BINARY_DIR}/final_destination/${mytarget_filename}
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:mytarget>
-        ${CMAKE_BINARY_DIR}/final_destination
-        DEPENDS mytarget
-        )
-# Create target which consume the command via DEPENDS.
-add_custom_target(copy_files ALL
-        DEPENDS ${CMAKE_BINARY_DIR}/final_destination/${mytarget_filename}
-        )
+## Because OUTPUT option may not use generator expressions,
+## extract name of file from target's properties.
+#get_target_property(mytarget_basename mytarget OUTPUT_NAME)
+#get_target_property(mytarget_suffix mytarget SUFFIX)
+#set(mytarget_filename ${mytarget_basename}${mytarget_suffix})
+## make copied file be dependent from one which is build.
+## Note, that DEPENDS here creates dependencies both from the target
+## and from the file it creates.
+#add_custom_command(OUTPUT
+#        ${CMAKE_BINARY_DIR}/final_destination/${mytarget_filename}
+#        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:mytarget>
+#        ${CMAKE_BINARY_DIR}/final_destination
+#        DEPENDS mytarget
+#        )
+## Create target which consume the command via DEPENDS.
+#add_custom_target(copy_files ALL
+#        DEPENDS ${CMAKE_BINARY_DIR}/final_destination/${mytarget_filename}
+#        )
