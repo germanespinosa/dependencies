@@ -10,6 +10,10 @@ endif()
 
 make_directory(${DEPENDENCIES_FOLDER})
 
+if (NOT EXISTS ${DEPENDENCIES_FOLDER}/CMakeLists.txt)
+    file(DOWNLOAD https://raw.githubusercontent.com/germanespinosa/dependencies/main/cmake-dependencies-CMakeLists.txt ${DEPENDENCIES_FOLDER}/CMakeLists.txt)
+endif()
+
 set(DEPENDENCIES_DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/dependencies-build")
 
 make_directory(${DEPENDENCIES_DESTINATION})
