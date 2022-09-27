@@ -201,18 +201,17 @@ macro (install_git_dependency DEPENDENCY_REPOSITORY)
         add_subdirectory(${DEPENDENCY_FOLDER} ${DEPENDENCY_DESTINATION})
     elseif(${DEPENDENCY_CMAKE_PROJECT})
         make_directory("${DEPENDENCY_DESTINATION}")
-        message("DEPENDENCY_DESTINATION: ${DEPENDENCY_DESTINATION}")
         set(DEPENDENCY_CMAKE_COMMAND "${DEPENDENCY_CMAKE} '-DDEPENDENCY=${DEPENDENCY_FOLDER_NAME}'")
 
         execute_process(COMMAND bash -c "${DEPENDENCY_CMAKE} '-DDEPENDENCY=${DEPENDENCY_FOLDER_NAME}'"
                 WORKING_DIRECTORY ${DEPENDENCY_DESTINATION}
                 RESULT_VARIABLE DEPENDENCY_CMAKE_RESULT )
 
-
         message("DEPENDENCY_CMAKE_RESULT: ${DEPENDENCY_CMAKE_RESULT}")
         if (NOT ${DEPENDENCY_CMAKE_RESULT} EQUAL "0")
             message(FATAL_ERROR "failed to load dependency cmake file" )
         endif()
+
         if (NOT ${NO_BUILD})
             execute_process(COMMAND make -j
                     WORKING_DIRECTORY ${DEPENDENCY_DESTINATION}
@@ -238,6 +237,25 @@ macro (install_git_dependency DEPENDENCY_REPOSITORY)
             endif()
         endforeach()
     endif()
+    file(READ "${DEPENDENCY_DESTINATION}/dependency-include_directories.txt" DEPENDENCY_GENERATED_INCLUDE_DIRECTORIES)
+    if(NOT "${DEPENDENCY_GENERATED_INCLUDE_DIRECTORIES}" STREQUAL "")
+        if("${DEPENDENCY_TARGET}" STREQUAL "")
+            include_directories(${DEPENDENCY_GENERATED_INCLUDE_DIRECTORIES})
+        else()
+            target_include_directories(${DEPENDENCY_TARGET} ${DEPENDENCY_GENERATED_INCLUDE_DIRECTORIES})
+        endif()
+    endif()
+
+    file(READ "${DEPENDENCY_DESTINATION}/dependency-include_directories.txt" DEPENDENCY_GENERATED_INCLUDE_DIRECTORIES)
+    if(NOT "${DEPENDENCY_GENERATED_INCLUDE_DIRECTORIES}" STREQUAL "")
+        if("${DEPENDENCY_TARGET}" STREQUAL "")
+            link_directories(${dependency_output_directory})
+        else()
+            target_link_directories(${DEPENDENCY_TARGET} ${dependency_output_directory})
+        endif()
+    endif()
+
+
 endmacro()
 
 macro(install_dependency DEPENDENCY_REPOSITORY)
