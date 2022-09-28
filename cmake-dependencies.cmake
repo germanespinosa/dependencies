@@ -77,6 +77,10 @@ foreach(DEPENDENCY_TARGET ${DEPENDENCY_TARGETS})
 #    print_target_properties(${DEPENDENCY_TARGET})
 endforeach()
 
+if (EXISTS "${CMAKE_CURRENT_BINARY_DIR}/dependency-imported_targets.txt")
+    file(READ "${CMAKE_CURRENT_BINARY_DIR}/dependency-imported_targets.txt" DEPENDENCY_IMPORTED_TARGETS)
+    list(APPEND DEPENDENCY_LIBRARY_TARGETS ${DEPENDENCY_IMPORTED_TARGETS})
+endif()
 
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/dependency-targets.txt" "${DEPENDENCY_LIBRARY_TARGETS}")
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/dependency-include_directories.txt" "${DEPENDENCY_INCLUDE_DIRECTORIES}")
