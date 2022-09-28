@@ -1,9 +1,11 @@
 set(DEPENDENCIES_IGNORE "${CMAKE_C_COMPILER}")
 
 
+set_property(GLOBAL PROPERTY source_list_property "${source_list}")
+
+
 if (NOT ${DEPENDENCIES_FOLDER} EQUAL "")
     set(DEPENDENCIES_FOLDER "${DEPENDENCIES_FOLDER}" CACHE PATH "")
-    message ("dependency folder parameter: ${DEPENDENCIES_FOLDER}")
 else()
     set(DEPENDENCIES_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/git-dependencies" CACHE PATH "")
 endif()
@@ -15,12 +17,13 @@ if (NOT EXISTS ${DEPENDENCIES_FOLDER}/CMakeLists.txt)
 endif()
 
 set(DEPENDENCIES_DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/git-dependencies")
-
 make_directory(${DEPENDENCIES_DESTINATION})
 #${CMAKE_COMMAND}
 set(DEPENDENCY_CMAKE "${CMAKE_COMMAND} '-DBUILD_AS_DEPENDENCY=TRUE' '-DDEPENDENCIES_FOLDER=${DEPENDENCIES_FOLDER}' --no-warn-unused-cli -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} '-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}' -Wno-dev -DCATCH_TESTS=DISABLED ${DEPENDENCIES_FOLDER}")
 
-include_directories(${DEPENDENCIES_FOLDER})
+if(EXISTS "${DEPENDENCY_TARGETS_FOLDER}/dependency-imported_targets.txt")
+    FILE(REMOVE "${DEPENDENCY_TARGETS_FOLDER}/dependency-imported_targets.txt")
+endif()
 
 set(ADDITIONAL_CLEAN_FILES "")
 list(APPEND ADDITIONAL_CLEAN_FILES ${DEPENDENCIES_FOLDER})
@@ -136,7 +139,7 @@ macro (install_git_dependency DEPENDENCY_NAME DEPENDENCY_REPOSITORY)
             message(FATAL_ERROR "failed to load dependency cmake file" )
         endif()
 
-        if (NOT ${${DEPENDENCY_NAME}_NO_BUILD})
+        if (NOT ${${DEPENDENCY_NAME}_NO_BUILD} AND ${${DEPENDENCY_NAME}_HAS_UPDATES})
             execute_process(COMMAND make -j
                     WORKING_DIRECTORY ${${DEPENDENCY_NAME}_DESTINATION}
                     RESULT_VARIABLE ${DEPENDENCY_NAME}_MAKE_RESULT)
@@ -151,7 +154,6 @@ macro (install_git_dependency DEPENDENCY_NAME DEPENDENCY_REPOSITORY)
             if("${${DEPENDENCY_NAME}_TARGET}" STREQUAL "")
                 include_directories(${${DEPENDENCY_NAME}_GENERATED_INCLUDE_DIRECTORIES})
             else()
-                message("target_include_directories(${${DEPENDENCY_NAME}_TARGET} ${${DEPENDENCY_NAME}_INCLUDE_SCOPE} ${${DEPENDENCY_NAME}_GENERATED_INCLUDE_DIRECTORIES})")
                 target_include_directories(${${DEPENDENCY_NAME}_TARGET} ${${DEPENDENCY_NAME}_INCLUDE_SCOPE} ${${DEPENDENCY_NAME}_GENERATED_INCLUDE_DIRECTORIES})
             endif()
         endif()
@@ -160,29 +162,50 @@ macro (install_git_dependency DEPENDENCY_NAME DEPENDENCY_REPOSITORY)
             file(READ "${${DEPENDENCY_NAME}_DESTINATION}/dependency-targets.txt" ${DEPENDENCY_NAME}_IMPORT_TARGETS)
         endif()
 
-        set(${DEPENDENCY_NAME}_LINKED_LIBRARIES "")
         foreach(${DEPENDENCY_NAME}_IMPORTED_TARGET ${${DEPENDENCY_NAME}_IMPORT_TARGETS})
+            get_directory_property(hasParent PARENT_DIRECTORY)
+            file(READ "${${DEPENDENCY_NAME}_DESTINATION}/dependency_${${DEPENDENCY_NAME}_IMPORTED_TARGET}-bin.txt" ${${DEPENDENCY_NAME}_IMPORTED_TARGET}_IMPORTED_TARGET_BIN)
+            add_library(${${DEPENDENCY_NAME}_IMPORTED_TARGET} STATIC IMPORTED)
             file(READ "${${DEPENDENCY_NAME}_DESTINATION}/dependency_${${DEPENDENCY_NAME}_IMPORTED_TARGET}-include_directories.txt" ${${DEPENDENCY_NAME}_IMPORTED_TARGET}_IMPORTED_TARGET_INCLUDE_DIRECTORIES)
+
+            set_target_properties(${${DEPENDENCY_NAME}_IMPORTED_TARGET} PROPERTIES
+                    IMPORTED_LINK_INTERFACE_LANGUAGES_DEBUG "CXX"
+                    IMPORTED_LOCATION "${${${DEPENDENCY_NAME}_IMPORTED_TARGET}_IMPORTED_TARGET_BIN}"
+                    )
+
             if(NOT "${${${DEPENDENCY_NAME}_IMPORTED_TARGET}_IMPORTED_TARGET_INCLUDE_DIRECTORIES}" STREQUAL "")
-                if("${${DEPENDENCY_NAME}_TARGET}" STREQUAL "")
-                    include_directories(${${${DEPENDENCY_NAME}_IMPORTED_TARGET}_IMPORTED_TARGET_INCLUDE_DIRECTORIES})
-                else()
-                    message("target_include_directories(${${DEPENDENCY_NAME}_TARGET} ${${DEPENDENCY_NAME}_INCLUDE_SCOPE} ${${${DEPENDENCY_NAME}_IMPORTED_TARGET}_IMPORTED_TARGET_INCLUDE_DIRECTORIES})")
-                    target_include_directories(${${DEPENDENCY_NAME}_TARGET} ${${DEPENDENCY_NAME}_INCLUDE_SCOPE} ${${${DEPENDENCY_NAME}_IMPORTED_TARGET}_IMPORTED_TARGET_INCLUDE_DIRECTORIES} )
-                endif()
+                set_target_properties(${${DEPENDENCY_NAME}_IMPORTED_TARGET} PROPERTIES
+                        INTERFACE_INCLUDE_DIRECTORIES "${${${DEPENDENCY_NAME}_IMPORTED_TARGET}_IMPORTED_TARGET_INCLUDE_DIRECTORIES}"
+                )
             endif()
+
             file(READ "${${DEPENDENCY_NAME}_DESTINATION}/dependency_${${DEPENDENCY_NAME}_IMPORTED_TARGET}-path.txt" ${${DEPENDENCY_NAME}_IMPORTED_TARGET}_IMPORTED_TARGET_PATH)
-            if("${${DEPENDENCY_NAME}_TARGET}" STREQUAL "")
-                link_directories(${${${DEPENDENCY_NAME}_IMPORTED_TARGET}}_IMPORTED_TARGET_PATH})
-            else()
-                target_link_directories(${${DEPENDENCY_NAME}_TARGET} ${${DEPENDENCY_NAME}_INCLUDE_SCOPE} ${${${${DEPENDENCY_NAME}_IMPORTED_TARGET}}_IMPORTED_TARGET_PATH})
-            endif()
+            target_link_directories(${${DEPENDENCY_NAME}_IMPORTED_TARGET} INTERFACE ${${${DEPENDENCY_NAME}_IMPORTED_TARGET}_IMPORTED_TARGET_PATH})
             if (EXISTS "${${DEPENDENCY_NAME}_DESTINATION}/dependency_${${DEPENDENCY_NAME}_IMPORTED_TARGET}-link_libraries.txt")
                 file(READ "${${DEPENDENCY_NAME}_DESTINATION}/dependency_${${DEPENDENCY_NAME}_IMPORTED_TARGET}-link_libraries.txt" ${${${DEPENDENCY_NAME}_IMPORTED_TARGET}}_LINKED_LIBRARIES)
-                LIST(APPEND ${DEPENDENCY_NAME}_LINKED_LIBRARIES ${${${${DEPENDENCY_NAME}_IMPORTED_TARGET}}_LINKED_LIBRARIES})
-                if(NOT "${${DEPENDENCY_NAME}_TARGET}" STREQUAL "")
-                    message("target_link_directories(${${DEPENDENCY_NAME}_TARGET} ${${${${DEPENDENCY_NAME}_IMPORTED_TARGET}}_LINKED_LIBRARIES})")
-                    target_link_libraries(${${DEPENDENCY_NAME}_TARGET} ${${DEPENDENCY_NAME}_INCLUDE_SCOPE} ${${${${DEPENDENCY_NAME}_IMPORTED_TARGET}}_LINKED_LIBRARIES})
+                target_link_libraries(${${DEPENDENCY_NAME}_IMPORTED_TARGET} INTERFACE ${${${${DEPENDENCY_NAME}_IMPORTED_TARGET}}_LINKED_LIBRARIES})
+            endif()
+            if(NOT "${${DEPENDENCY_NAME}_TARGET}" STREQUAL "")
+                target_link_libraries(${${DEPENDENCY_NAME}_TARGET} ${${DEPENDENCY_NAME}_INCLUDE_SCOPE} ${${DEPENDENCY_NAME}_IMPORTED_TARGET})
+            endif()
+
+            if(${BUILD_AS_DEPENDENCY})
+                if(EXISTS "${DEPENDENCY_TARGETS_FOLDER}/dependency-imported_targets.txt")
+                    file(READ "${DEPENDENCY_TARGETS_FOLDER}/dependency-imported_targets.txt" DEPENDENCY_IMPORTED_TARGETS)
+                    LIST(APPEND DEPENDENCY_IMPORTED_TARGETS ${${DEPENDENCY_NAME}_IMPORTED_TARGET})
+                else()
+                    set(DEPENDENCY_IMPORTED_TARGETS "${${DEPENDENCY_NAME}_IMPORTED_TARGET}")
+                endif()
+                file(WRITE "${DEPENDENCY_TARGETS_FOLDER}/dependency-imported_targets.txt" "${DEPENDENCY_IMPORTED_TARGETS}")
+                file(COPY
+                        "${${DEPENDENCY_NAME}_DESTINATION}/dependency_${${DEPENDENCY_NAME}_IMPORTED_TARGET}-path.txt"
+                        "${${DEPENDENCY_NAME}_DESTINATION}/dependency_${${DEPENDENCY_NAME}_IMPORTED_TARGET}-bin.txt"
+                        "${${DEPENDENCY_NAME}_DESTINATION}/dependency_${${DEPENDENCY_NAME}_IMPORTED_TARGET}-include_directories.txt"
+                        DESTINATION "${DEPENDENCY_TARGETS_FOLDER}")
+                if (EXISTS "${${DEPENDENCY_NAME}_DESTINATION}/dependency_${${DEPENDENCY_NAME}_IMPORTED_TARGET}-link_libraries.txt")
+                    file(COPY
+                            "${${DEPENDENCY_NAME}_DESTINATION}/dependency_${${DEPENDENCY_NAME}_IMPORTED_TARGET}-link_libraries.txt"
+                            DESTINATION "${DEPENDENCY_TARGETS_FOLDER}")
                 endif()
             endif()
         endforeach()
@@ -193,6 +216,7 @@ macro (install_git_dependency DEPENDENCY_NAME DEPENDENCY_REPOSITORY)
                 find_package(${${DEPENDENCY_NAME}_PACKAGE})
             endforeach()
         endif()
+
     endif()
 
     if("${${DEPENDENCY_NAME}_INCLUDE_DIRECTORIES}" STREQUAL "")
@@ -203,13 +227,7 @@ macro (install_git_dependency DEPENDENCY_NAME DEPENDENCY_REPOSITORY)
 
     if(${${DEPENDENCY_NAME}_HAS_INCLUDE_DIRECTORIES})
         foreach(${DEPENDENCY_NAME}_INCLUDE_DIRECTORY ${${DEPENDENCY_NAME}_INCLUDE_DIRECTORIES})
-            if("${${DEPENDENCY_NAME}_TARGET}" STREQUAL "")
-                message(" HERE2: include_directories(${${DEPENDENCY_NAME}_FOLDER}/${${DEPENDENCY_NAME}_INCLUDE_DIRECTORY})")
-                include_directories(${${DEPENDENCY_NAME}_FOLDER}/${${DEPENDENCY_NAME}_INCLUDE_DIRECTORY})
-            else()
-                message(" HERE2: target_include_directories(${${DEPENDENCY_NAME}_TARGET} ${${DEPENDENCY_NAME}_INCLUDE_SCOPE} ${${DEPENDENCY_NAME}_FOLDER}/${${DEPENDENCY_NAME}_INCLUDE_DIRECTORY})")
-                target_include_directories(${${DEPENDENCY_NAME}_TARGET} ${${DEPENDENCY_NAME}_INCLUDE_SCOPE} ${${DEPENDENCY_NAME}_FOLDER}/${${DEPENDENCY_NAME}_INCLUDE_DIRECTORY})
-            endif()
+            include_directories(${${DEPENDENCY_NAME}_FOLDER}/${${DEPENDENCY_NAME}_INCLUDE_DIRECTORY})
         endforeach()
     endif()
 endmacro()
