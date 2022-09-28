@@ -72,7 +72,9 @@ foreach(DEPENDENCY_TARGET ${DEPENDENCY_TARGETS})
         file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/dependency_${DEPENDENCY_TARGET}-link_libraries.txt" "${DEPENDENCY_TARGET_LINK_LIBRARIES}")
     endif()
 
-    print_target_properties(${DEPENDENCY_TARGET})
+    file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/dependency_${DEPENDENCY_TARGET}-bin.txt" CONTENT "$<TARGET_FILE:${DEPENDENCY_TARGET}>")
+
+#    print_target_properties(${DEPENDENCY_TARGET})
 endforeach()
 
 
