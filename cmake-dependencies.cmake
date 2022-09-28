@@ -35,7 +35,7 @@ function(print_target_properties target)
     endforeach()
 endfunction()
 
-
+set(DEPENDENCY_TARGETS_FOLDER "${CMAKE_CURRENT_BINARY_DIR}")
 add_subdirectory(${DEPENDENCY})
 
 get_property(DEPENDENCY_TARGETS DIRECTORY ${DEPENDENCY} PROPERTY BUILDSYSTEM_TARGETS)
