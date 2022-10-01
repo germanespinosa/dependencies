@@ -1,4 +1,5 @@
 set(DEPENDENCIES_IGNORE "${CMAKE_C_COMPILER}")
+set(DEPENDENCIES_IGNORE "${CMAKE_C_COMPILER}")
 
 
 set_property(GLOBAL PROPERTY source_list_property "${source_list}")
