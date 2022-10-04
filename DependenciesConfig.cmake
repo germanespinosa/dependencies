@@ -5,11 +5,15 @@ set(DEPENDENCIES_IGNORE "${CMAKE_C_COMPILER}")
 set_property(GLOBAL PROPERTY source_list_property "${source_list}")
 
 
+if ("${BUILD_AS_DEPENDENCY}" STREQUAL "")
+    set(BUILD_AS_DEPENDENCY "FALSE" CACHE STRING "Build this project as a dependency")
+endif()
 
-if (NOT ${DEPENDENCIES_FOLDER} EQUAL "")
-    set(DEPENDENCIES_FOLDER "${DEPENDENCIES_FOLDER}" CACHE PATH "")
+
+if (NOT "${DEPENDENCIES_FOLDER}" STREQUAL "")
+    set(DEPENDENCIES_FOLDER "${DEPENDENCIES_FOLDER}" CACHE STRING "Dependencies folder")
 else()
-    set(DEPENDENCIES_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/git-dependencies" CACHE PATH "")
+    set(DEPENDENCIES_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/git-dependencies" CACHE STRING "Dependencies folder")
 endif()
 
 make_directory(${DEPENDENCIES_FOLDER})
