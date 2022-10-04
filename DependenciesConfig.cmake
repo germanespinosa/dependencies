@@ -5,6 +5,11 @@ set(DEPENDENCIES_IGNORE "${CMAKE_C_COMPILER}")
 set_property(GLOBAL PROPERTY source_list_property "${source_list}")
 
 
+if ("${CONNECT_ALL_DEPENDENCIES}" STREQUAL "")
+    set(CONNECT_ALL_DEPENDENCIES "FALSE" CACHE STRING "Leave all dependencies connected to their repositories")
+endif()
+
+
 if ("${BUILD_AS_DEPENDENCY}" STREQUAL "")
     set(BUILD_AS_DEPENDENCY "FALSE" CACHE STRING "Build this project as a dependency")
 endif()
@@ -123,6 +128,10 @@ macro (install_git_dependency DEPENDENCY_NAME DEPENDENCY_REPOSITORY)
     set(${DEPENDENCY_NAME}_INCLUDE_SCOPE "PRIVATE")
     if (${${DEPENDENCY_NAME}_PUBLIC})
         set(${DEPENDENCY_NAME}_INCLUDE_SCOPE "PUBLIC")
+    endif()
+
+    if (${CONNECT_ALL_DEPENDENCIES})
+        set(${DEPENDENCY_NAME}_CONNECTED "TRUE")
     endif()
 
     update_git_dependency(${DEPENDENCY_REPOSITORY} ${DEPENDENCY_NAME}_FOLDER_NAME ${DEPENDENCY_NAME}_HAS_UPDATES ${ARGN} )
