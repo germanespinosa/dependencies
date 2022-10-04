@@ -140,7 +140,7 @@ macro (install_git_dependency DEPENDENCY_NAME DEPENDENCY_REPOSITORY)
             message(FATAL_ERROR "failed to load dependency cmake file" )
         endif()
 
-        if (NOT ${${DEPENDENCY_NAME}_NO_BUILD} AND ${${DEPENDENCY_NAME}_HAS_UPDATES})
+        if (NOT ${${DEPENDENCY_NAME}_NO_BUILD}) # AND ${${DEPENDENCY_NAME}_HAS_UPDATES}
             execute_process(COMMAND make -j
                     WORKING_DIRECTORY ${${DEPENDENCY_NAME}_DESTINATION}
                     RESULT_VARIABLE ${DEPENDENCY_NAME}_MAKE_RESULT)
