@@ -12,7 +12,12 @@ endif()
 
 foreach(DEPENDENCY_TARGET ${DEPENDENCY_TARGETS})
     get_target_property(DEPENDENCY_TARGET_TYPE ${DEPENDENCY_TARGET} TYPE)
+
     if (NOT "${DEPENDENCY_TARGET_TYPE}" MATCHES "LIBRARY")
+        continue()
+    endif()
+
+    if ("${DEPENDENCY_TARGET_TYPE}" MATCHES "INTERFACE_LIBRARY")
         continue()
     endif()
 
