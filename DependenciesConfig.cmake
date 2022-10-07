@@ -315,8 +315,7 @@ macro (install_git_dependency DEPENDENCY_NAME DEPENDENCY_REPOSITORY)
                     WORKING_DIRECTORY ${${DEPENDENCY_NAME}_DESTINATION}
                     OUTPUT_VARIABLE ${DEPENDENCY_NAME}_CMAKE_OUTPUT
                     RESULT_VARIABLE ${DEPENDENCY_NAME}_CMAKE_RESULT
-                    ERROR_VARIABLE ${DEPENDENCY_NAME}_CMAKE_ERROR
-                    OUTPUT_QUIET )
+                    ERROR_VARIABLE ${DEPENDENCY_NAME}_CMAKE_ERROR )
 
             git_dependencies_log("${${DEPENDENCY_NAME}_CMAKE_OUTPUT}")
             git_dependencies_log("${${DEPENDENCY_NAME}_CMAKE_ERROR}")
@@ -332,8 +331,8 @@ macro (install_git_dependency DEPENDENCY_NAME DEPENDENCY_REPOSITORY)
                         WORKING_DIRECTORY ${${DEPENDENCY_NAME}_DESTINATION}
                         OUTPUT_VARIABLE ${DEPENDENCY_NAME}_MAKE_OUTPUT
                         RESULT_VARIABLE ${DEPENDENCY_NAME}_MAKE_RESULT
-                        ERROR_VARIABLE ${DEPENDENCY_NAME}_MAKE_ERROR
-                        OUTPUT_QUIET )
+                        ERROR_VARIABLE ${DEPENDENCY_NAME}_MAKE_ERROR )
+
                 git_dependencies_log("${${DEPENDENCY_NAME}_MAKE_OUTPUT}")
                 git_dependencies_log("${${DEPENDENCY_NAME}_MAKE_ERROR}")
                 if (NOT ${${DEPENDENCY_NAME}_MAKE_RESULT} EQUAL "0")
