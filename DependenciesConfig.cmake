@@ -4,8 +4,10 @@ set(DEPENDENCIES_IGNORE "${CMAKE_CPP_COMPILER}")
 set_property(GLOBAL PROPERTY source_list_property "${source_list}")
 
 function (git_dependencies_log LOG_DATA)
-    string(TIMESTAMP LOG_TIME_STAMP)
-    file(APPEND "${DEPENDENCIES_LOG_FILE}" "${LOG_TIME_STAMP}: ${LOG_DATA}\n")
+    if(NOT "${LOG_DATA}" STREQUAL "")
+        string(TIMESTAMP LOG_TIME_STAMP)
+        file(APPEND "${DEPENDENCIES_LOG_FILE}" "${LOG_TIME_STAMP}: ${LOG_DATA}\n")
+    endif()
 endfunction()
 
 
@@ -313,9 +315,11 @@ macro (install_git_dependency DEPENDENCY_NAME DEPENDENCY_REPOSITORY)
                     WORKING_DIRECTORY ${${DEPENDENCY_NAME}_DESTINATION}
                     OUTPUT_VARIABLE ${DEPENDENCY_NAME}_CMAKE_OUTPUT
                     RESULT_VARIABLE ${DEPENDENCY_NAME}_CMAKE_RESULT
+                    ERROR_VARIABLE ${DEPENDENCY_NAME}_CMAKE_ERROR
                     OUTPUT_QUIET )
 
             git_dependencies_log("${${DEPENDENCY_NAME}_CMAKE_OUTPUT}")
+            git_dependencies_log("${${DEPENDENCY_NAME}_CMAKE_ERROR}")
             if (NOT ${${DEPENDENCY_NAME}_CMAKE_RESULT} EQUAL "0")
                 message(FATAL_ERROR "failed to load dependency cmake file" )
             endif()
@@ -327,9 +331,11 @@ macro (install_git_dependency DEPENDENCY_NAME DEPENDENCY_REPOSITORY)
                 execute_process(COMMAND make -j
                         WORKING_DIRECTORY ${${DEPENDENCY_NAME}_DESTINATION}
                         RESULT_VARIABLE ${DEPENDENCY_NAME}_MAKE_RESULT
-                        OUTPUT_VARIABLE ${DEPENDENCY_NAME}_CMAKE_OUTPUT
+                        ERROR_VARIABLE ${DEPENDENCY_NAME}_MAKE_ERROR
+                        OUTPUT_VARIABLE ${DEPENDENCY_NAME}_MAKE_OUTPUT
                         OUTPUT_QUIET )
-                git_dependencies_log("${DEPENDENCY_NAME}_CMAKE_OUTPUT")
+                git_dependencies_log("${${DEPENDENCY_NAME}_MAKE_OUTPUT}")
+                git_dependencies_log("${${DEPENDENCY_NAME}_MAKE_ERROR}")
                 if (NOT ${${DEPENDENCY_NAME}_MAKE_RESULT} EQUAL "0")
                     message(FATAL_ERROR "failed to build dependency cmake file" )
                 endif()
