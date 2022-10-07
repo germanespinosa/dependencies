@@ -330,9 +330,9 @@ macro (install_git_dependency DEPENDENCY_NAME DEPENDENCY_REPOSITORY)
                 git_dependencies_log("make -j")
                 execute_process(COMMAND make -j
                         WORKING_DIRECTORY ${${DEPENDENCY_NAME}_DESTINATION}
+                        OUTPUT_VARIABLE ${DEPENDENCY_NAME}_MAKE_OUTPUT
                         RESULT_VARIABLE ${DEPENDENCY_NAME}_MAKE_RESULT
                         ERROR_VARIABLE ${DEPENDENCY_NAME}_MAKE_ERROR
-                        OUTPUT_VARIABLE ${DEPENDENCY_NAME}_MAKE_OUTPUT
                         OUTPUT_QUIET )
                 git_dependencies_log("${${DEPENDENCY_NAME}_MAKE_OUTPUT}")
                 git_dependencies_log("${${DEPENDENCY_NAME}_MAKE_ERROR}")
