@@ -50,7 +50,7 @@ if (NOT EXISTS ${DEPENDENCIES_FOLDER})
     make_directory(${DEPENDENCIES_FOLDER})
 endif()
 
-if (NOT EXISTS ${DEPENDENCIES_FOLDER}/CMakeLists.txt)
+if (NOT EXISTS ${DEPENDENCIES_DESTINATION}/CMakeLists.txt)
     git_dependencies_log("Creating dependency cmake wrapper")
     file(WRITE "${DEPENDENCIES_DESTINATION}/CMakeLists.txt"
 "project(Dependencies)
